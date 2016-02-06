@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">MySafe</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
+    <string name="settings_header">Vehicles</string>
+
+
+    <!-- Form ADD VEHICLE -->
+    <string name="form_imei_label">IMEI</string>
+    <string name="form_imei_default">012345678912345</string>
+    <string name="form_imei_key" translatable="false">imei</string>
+
+    <string name="form_brand_label">Brand</string>
+    <string name="form_brand_key" translatable="false">brand</string>
+    <string name="form_brand_default">Ferrari</string>
+
+    <string name="form_color_label">Color</string>
+    <string name="form_color_key" translatable="false">color</string>
+    <string name="form_color_default">Red</string>
+    <string name="title_activity_add">Add Vehicle</string>
+
+
+</resources>
