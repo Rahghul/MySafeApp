@@ -10,6 +10,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import fr.mysafeauto.mysafe.Services.Vehicle.Vehicle;
+
 /**
  * Created by Rahghul on 05/02/2016.
  */

@@ -1,17 +1,15 @@
-package fr.mysafeauto.mysafe;
-
-import java.io.Serializable;
+package fr.mysafeauto.mysafe.Services.Vehicle;
 
 /**
- * Created by Rahghul on 05/02/2016.
+ * Created by Rahghul on 06/02/2016.
  */
-@SuppressWarnings("serial") //With this annotation we are going to hide compiler warnings
-public class Vehicle implements Serializable {
+public class Vehicle {
     String imei;
     String brand;
     String color;
 
-    public Vehicle(){}
+    public Vehicle() {
+    }
 
     public Vehicle(String imei, String brand, String color) {
         this.imei = imei;
@@ -46,9 +44,9 @@ public class Vehicle implements Serializable {
     @Override
     public String toString() {
         return "Vehicle{" +
-                "imei=" + imei.toString() +
-                ", brand='" + brand.toString() + '\'' +
-                ", color='" + color.toString() + '\'' +
+                "color='" + color + '\'' +
+                ", brand='" + brand + '\'' +
+                ", imei='" + imei + '\'' +
                 '}';
     }
 }

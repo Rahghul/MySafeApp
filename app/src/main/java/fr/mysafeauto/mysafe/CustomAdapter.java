@@ -12,6 +12,8 @@ import org.w3c.dom.Text;
 
 import java.util.List;
 
+import fr.mysafeauto.mysafe.Services.Vehicle.Vehicle;
+
 /**
  * Created by soham on 3/5/15.
  */

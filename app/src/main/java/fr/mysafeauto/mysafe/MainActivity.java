@@ -1,17 +1,12 @@
 package fr.mysafeauto.mysafe;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.media.Image;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -24,8 +19,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -40,29 +33,34 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.mysafeauto.mysafe.Services.ServiceCallBack;
+import fr.mysafeauto.mysafe.Services.Vehicle.ServiceGetVehicleOfOwner;
+import fr.mysafeauto.mysafe.Services.Vehicle.Vehicle;
+
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, ServiceCallBack {
 
     private GoogleMap mMap;
 
-    List<Vehicle> mRightItems = new ArrayList<Vehicle>();;
-   // ArrayAdapter mRightAdapter;
-    ListView mRightDrawer;
+    List<Vehicle> vehicleList = new ArrayList<Vehicle>();;
+    ListView vehicleListView;
     DrawerLayout drawer;
-    CustomAdapter adapter;
+    CustomAdapter vehicleAdapter;
 
     ImageView btn_add_vehicle;
     Context mContext;
-    Vehicle mvehicle;
 
     ActionBarDrawerToggle toggle;
 
     ImageView delete;
     ImageView edit;
 
+    ProgressDialog dialog;
+    String url1 = "http://mysafe.cloudapp.net/mysafe/rest/owners/id/1/vehicles";
+
     int position = 0;
-    SQLiteDatabase db;
+    //SQLiteDatabase db;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,21 +68,23 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        db = openOrCreateDatabase("MysafeAppDB", Context.MODE_PRIVATE, null);
+    //    db = openOrCreateDatabase("MysafeAppDB", Context.MODE_PRIVATE, null);
 
-        mRightDrawer = (ListView)findViewById(R.id.rightListView);
+        vehicleListView = (ListView)findViewById(R.id.rightListView);
+        dialog = new ProgressDialog(this);
         //Custom Adapter
-        adapter = new CustomAdapter(this, mRightItems);
-        mRightDrawer.setAdapter(adapter);
-        //mRightAdapter = new ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, mRightItems);
-        //mRightDrawer.setAdapter(mRightAdapter);
+       // vehicleAdapter = new CustomAdapter(this, vehicleList);
+       // vehicleListView.setAdapter(vehicleAdapter);
 
-        afficherVehicles();
+       // afficherVehicles();
+
+        callServiceVehicle(url1);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                showMessage("Info :","www.mysafeauto.fr");
                 Snackbar.make(view, "Code to implement to show the details about the app", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
@@ -117,23 +117,22 @@ public class MainActivity extends AppCompatActivity
 
 
         //viewDBApp();
-       mRightDrawer.setOnTouchListener(new OnSwipeTouchListener(this, mRightDrawer) {
+        vehicleListView.setOnTouchListener(new OnSwipeTouchListener(this, vehicleListView) {
 
-         //   @Override
+            //   @Override
      /*       public void onSwipeRight(int pos) {
 
                 Toast.makeText(MainActivity.this, "right", Toast.LENGTH_LONG).show();
                 showMessage("Error", "No records found but table exist");
-               // showDeleteButton(pos);
             }*/
 
             @Override
             public void onSwipeLeft(int pos) {
 
-                showDeleteButton(pos);
+                showDeleteEditButton(pos);
             }
         });
-        adapter.notifyDataSetChanged();
+       // vehicleAdapter.notifyDataSetChanged();
 
 
     }
@@ -141,14 +140,16 @@ public class MainActivity extends AppCompatActivity
 
 
     public void deleteItem(int pos) {
-        Cursor c=db.rawQuery("SELECT * FROM vehicles WHERE imei='"+mRightItems.get(position).getImei().toString()+"'", null);
+       /* Cursor c=db.rawQuery("SELECT * FROM vehicles WHERE imei='"+mRightItems.get(position).getImei().toString()+"'", null);
         if(c.moveToFirst())
         {
             // Deleting record if found
             db.execSQL("DELETE FROM vehicles WHERE imei='" +mRightItems.get(position).getImei().toString()+"'");
         }
         delete.setVisibility(View.INVISIBLE);
-        afficherVehicles();
+
+      */
+        //  afficherVehicles();
     }
 
     @Override
@@ -157,9 +158,9 @@ public class MainActivity extends AppCompatActivity
         return super.dispatchTouchEvent(ev);
     }
 
-    private boolean showDeleteButton(int pos) {
+    private boolean showDeleteEditButton(int pos) {
         position = pos;
-        View child = mRightDrawer.getChildAt(pos - mRightDrawer.getFirstVisiblePosition());
+        View child = vehicleListView.getChildAt(pos - vehicleListView.getFirstVisiblePosition());
         if (child != null) {
 
             delete = (ImageView) child.findViewById(R.id.delete);
@@ -211,12 +212,12 @@ public class MainActivity extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 2) {
             if(resultCode == RESULT_OK){
-                afficherVehicles();
+               // afficherVehicles();
             }
         }
         if(requestCode == 3){
             if(resultCode == RESULT_OK){
-                afficherVehicles();
+               // afficherVehicles();
                 showMessage("Update","Code to implement if any changes !");
             }
         }
@@ -252,7 +253,7 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            drawer.openDrawer(mRightDrawer);
+            drawer.openDrawer(vehicleListView);
             return true;
         }
 
@@ -304,34 +305,6 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    public void afficherVehicles(){
-
-        Cursor c=db.rawQuery("SELECT * FROM vehicles", null);
-        // Checking if no records found
-        if(c.getCount()==0)
-        {
-            mRightItems.clear();
-            //showMessage("Error", "No records found but table exist");
-            adapter.notifyDataSetChanged();
-            return;
-        }
-        mRightItems.clear();
-        // Appending records to a string buffer
-        while(c.moveToNext())
-        {
-            mvehicle = new Vehicle();
-            mvehicle.setImei(c.getString(0));
-            mvehicle.setBrand(c.getString(1));
-            mvehicle.setColor(c.getString(2));
-
-            mRightItems.add(mvehicle);
-        }
-        // Displaying all records
-   //     mRightAdapter = new ArrayAdapter<Vehicle>(this, R.layout.support_simple_spinner_dropdown_item, mRightItems);
-     //   mRightDrawer.setAdapter(mRightAdapter);
-        //viewDBApp();
-        adapter.notifyDataSetChanged();
-    }
 
     public void showMessage(String title,String message)
     {
@@ -343,26 +316,25 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    public void viewDBApp(){
-        // Retrieving all records
-        Cursor c=db.rawQuery("SELECT * FROM vehicles", null);
-        // Checking if no records found
-        if(c.getCount()==0)
-        {
-            showMessage("Error", "No records found but table exist");
-            return;
-        }
-        // Appending records to a string buffer
-        StringBuffer buffer=new StringBuffer();
-        while(c.moveToNext())
-        {
-            buffer.append("ID" + c.getPosition()+"\n");
-            buffer.append("IMEI: "+c.getString(0)+"\n");
-            buffer.append("Brand: "+c.getString(1)+"\n");
-            buffer.append("Color: "+c.getString(2)+"\n\n");
-        }
-        // Displaying all records
-        showMessage("Vehicles Table", buffer.toString());
 
+    @Override
+    public void serviceSuccess(Object object, int id_srv) {
+        if(id_srv == 2) {
+            vehicleList = (List<Vehicle>) object;
+            vehicleAdapter = new CustomAdapter(this, vehicleList);
+            vehicleListView.setAdapter(vehicleAdapter);
+         //   vehicleAdapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public void serviceFailure(Exception exception) {
+        Toast.makeText(this, exception.getMessage(), Toast.LENGTH_LONG).show();
+    }
+
+
+    public void callServiceVehicle(String url){
+        ServiceGetVehicleOfOwner serviceGetVehicleOfOwner = new ServiceGetVehicleOfOwner(this, dialog);
+        serviceGetVehicleOfOwner.refreshLocalisation(url);
     }
 }
