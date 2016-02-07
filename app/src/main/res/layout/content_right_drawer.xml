@@ -23,8 +23,7 @@
         android:id="@+id/rightListView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:divider="#2B4159"
-        android:dividerHeight="3dp"
-        android:background="#89a8c9"
+        android:divider="#678FBA"
+        android:dividerHeight="1dp"
         android:choiceMode="singleChoice" />
 </LinearLayout>

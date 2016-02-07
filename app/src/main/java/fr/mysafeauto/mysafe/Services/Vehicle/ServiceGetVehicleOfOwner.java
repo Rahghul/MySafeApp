@@ -120,7 +120,7 @@ public class ServiceGetVehicleOfOwner {
         s = WebServiceUtil.requestWebService2(endpoint,null, "GET");
 
 
-        List<Vehicle> foundVehicles = new ArrayList<Vehicle>(20);
+        List<Vehicle> foundVehicles = new ArrayList<Vehicle>();
 
         JSONArray data = null;
             data = new JSONArray(s);

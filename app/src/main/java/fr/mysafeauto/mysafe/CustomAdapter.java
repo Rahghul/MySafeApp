@@ -66,8 +66,8 @@ public class CustomAdapter extends BaseAdapter {
         holder.textViewColor.setText(textitems.get(position).getColor().toString());
         holder.textViewIMEI.setText(textitems.get(position).getImei().toString());
 
-        holder.imageDel.setImageResource(R.drawable.deleteimg);
-        holder.imageEdit.setImageResource(R.drawable.editimg);
+        holder.imageDel.setImageResource(R.drawable.ic_delete_black);
+        holder.imageEdit.setImageResource(R.drawable.ic_build_black);
         holder.textViewBrand.setTag(String.valueOf(position));
         holder.textViewColor.setTag(String.valueOf(position));
         holder.textViewIMEI.setTag(String.valueOf(position));

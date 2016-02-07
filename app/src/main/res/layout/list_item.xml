@@ -4,7 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal">
-
+    <ImageView
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_gravity="top"
+        android:src="@drawable/ic_drive_eta_black_18dp"/>
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -13,7 +17,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Large Text"
+        android:text="Brand"
         android:id="@+id/txt_item_brand"
         android:layout_weight=".5"
         android:textColor="#1A2735"/>
@@ -22,7 +26,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Medium Text"
+        android:text="Color"
         android:id="@+id/txt_item_color"
         android:layout_weight=".5"
         android:textColor="#223447"/>
@@ -31,28 +35,34 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Small Text"
+        android:text="123456789123456"
         android:id="@+id/txt_item_imei"
         android:layout_weight=".5"
         android:textColor="#2B4159"/>
     </LinearLayout>
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
     <ImageView
-        android:id="@+id/delete"
-        android:layout_marginLeft="0dp"
-        android:layout_width="100dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="center_vertical"
-        android:onClick="deleteItem"
-        android:src="@drawable/deleteimg"
+        android:id="@+id/edit"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:src="@drawable/ic_build_black"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="20dp"
+        android:layout_toStartOf="@+id/delete"
         android:visibility="invisible"/>
 
     <ImageView
-        android:id="@+id/edit"
-        android:layout_width="100dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="center_vertical"
-        android:onClick="deleteItem"
-        android:src="@drawable/editimg"
+        android:id="@+id/delete"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:src="@drawable/ic_delete_black"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentTop="true"
         android:visibility="invisible"/>
+    </RelativeLayout>
 </LinearLayout>
