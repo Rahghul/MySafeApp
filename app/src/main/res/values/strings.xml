@@ -22,6 +22,8 @@
     <string name="form_color_key" translatable="false">color</string>
     <string name="form_color_default">Red</string>
     <string name="title_activity_add">Add Vehicle</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="error_invalid_imei">This IMEI number is invalid</string>
 
 
 </resources>

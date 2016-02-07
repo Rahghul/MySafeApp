@@ -6,13 +6,16 @@
 
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:id="@+id/text_input_layout_imei">
 
         <AutoCompleteTextView
             android:id="@+id/et_imei"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="MySafe IMEI"
+
+            android:maxLength="15"
             android:inputType="number"
             android:maxLines="1"
             android:singleLine="true" />
