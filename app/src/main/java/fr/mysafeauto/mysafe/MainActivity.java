@@ -57,10 +57,14 @@ public class MainActivity extends AppCompatActivity
     ImageView edit;
 
     ProgressDialog dialog;
-    String url1 = "http://mysafe.cloudapp.net/mysafe/rest/owners/id/1/vehicles";
+    ServiceGetVehicleOfOwner serviceGetVehicleOfOwner;
+    //String urlVehicleDisplay = "http://mysafe.cloudapp.net/mysafe/rest/owners/id/1/vehicles";
+    String urlVehicleDisplay = "http://mysafe.cloudapp.net/mysafe/rest/vehicles";
+    String urlVehicleCreate = "http://mysafe.cloudapp.net/mysafe/rest/vehicles/create?owner_id=1";
+    String urlVehicleDelete="http://mysafe.cloudapp.net/mysafe/rest/vehicles/delete/";
+    String postParam;
 
     int position = 0;
-    //SQLiteDatabase db;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,17 +72,11 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-    //    db = openOrCreateDatabase("MysafeAppDB", Context.MODE_PRIVATE, null);
 
         vehicleListView = (ListView)findViewById(R.id.rightListView);
         dialog = new ProgressDialog(this);
-        //Custom Adapter
-       // vehicleAdapter = new CustomAdapter(this, vehicleList);
-       // vehicleListView.setAdapter(vehicleAdapter);
 
-       // afficherVehicles();
-
-        callServiceVehicle(url1);
+        callServiceVehicleDisplay();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -109,8 +107,8 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onClick(View vw) {
-                startActivityForResult(new Intent(mContext, AddVehicleActivity.class), 2);// Activity is started with requestCode 2
-                // startActivity(new Intent(mContext, AddVehicleActivity.class));
+                startActivityForResult(new Intent(mContext, FormAddVehicleActivity.class), 2);// Activity is started with requestCode 2
+
             }
         });
 
@@ -139,18 +137,7 @@ public class MainActivity extends AppCompatActivity
 
 
 
-    public void deleteItem(int pos) {
-       /* Cursor c=db.rawQuery("SELECT * FROM vehicles WHERE imei='"+mRightItems.get(position).getImei().toString()+"'", null);
-        if(c.moveToFirst())
-        {
-            // Deleting record if found
-            db.execSQL("DELETE FROM vehicles WHERE imei='" +mRightItems.get(position).getImei().toString()+"'");
-        }
-        delete.setVisibility(View.INVISIBLE);
 
-      */
-        //  afficherVehicles();
-    }
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
@@ -177,13 +164,19 @@ public class MainActivity extends AppCompatActivity
                     delete.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            deleteItem(position - 1);
+                            callServiceVehicleDelete(vehicleList.get(position).getImei().toString());
                         }
                     });
                     edit.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            startActivityForResult(new Intent(mContext, AddVehicleActivity.class), 3);// Activity is started with requestCode 2
+
+                            Intent intent  = new Intent(mContext,FormAddVehicleActivity.class);
+                            intent.putExtra("old_imei", vehicleList.get(position).getImei().toString());
+                            intent.putExtra("old_brand", vehicleList.get(position).getBrand().toString());
+                            intent.putExtra("old_color", vehicleList.get(position).getColor().toString());
+                            startActivityForResult(intent, 3);
+
                         }
                     });
 
@@ -210,15 +203,17 @@ public class MainActivity extends AppCompatActivity
     {
         // TODO Auto-generated method stub
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 2) {
-            if(resultCode == RESULT_OK){
-               // afficherVehicles();
+        if (requestCode == 2 && resultCode == RESULT_OK) {
+            if(data.hasExtra("postParamCreateVehicle")) {
+                postParam = data.getExtras().getString("postParamCreateVehicle");
+                callServiceVehicleCreate();
             }
         }
-        if(requestCode == 3){
-            if(resultCode == RESULT_OK){
-               // afficherVehicles();
-                showMessage("Update","Code to implement if any changes !");
+        if(requestCode == 3 && resultCode == RESULT_OK){
+            if(data.hasExtra("postParamCreateVehicle") && data.hasExtra("imei")){
+                callServiceVehicleDelete(data.getExtras().getString("imei"));
+                postParam = data.getExtras().getString("postParamCreateVehicle");
+                callServiceVehicleCreate();
             }
         }
 
@@ -320,11 +315,20 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void serviceSuccess(Object object, int id_srv) {
         if(id_srv == 2) {
+            vehicleList.clear();
             vehicleList = (List<Vehicle>) object;
+         //   vehicleAdapter.notifyDataSetChanged();
             vehicleAdapter = new CustomAdapter(this, vehicleList);
             vehicleListView.setAdapter(vehicleAdapter);
-         //   vehicleAdapter.notifyDataSetChanged();
         }
+        if(id_srv == 3){
+            //showMessage("Result", "Vehicle added.");
+        }
+        if(id_srv == 4){
+            //showMessage("Result","Vehicle deleted.");
+        }
+
+
     }
 
     @Override
@@ -333,8 +337,21 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    public void callServiceVehicle(String url){
-        ServiceGetVehicleOfOwner serviceGetVehicleOfOwner = new ServiceGetVehicleOfOwner(this, dialog);
-        serviceGetVehicleOfOwner.refreshLocalisation(url);
+    public void callServiceVehicleDisplay(){
+        serviceGetVehicleOfOwner = new ServiceGetVehicleOfOwner(this, dialog, "display");
+        serviceGetVehicleOfOwner.refreshLocalisation(urlVehicleDisplay, null);
+    }
+
+    public void callServiceVehicleCreate(){
+        serviceGetVehicleOfOwner = new ServiceGetVehicleOfOwner(this, dialog, "create");
+        serviceGetVehicleOfOwner.refreshLocalisation(urlVehicleCreate, postParam);
+        callServiceVehicleDisplay();
+
+    }
+
+    public void callServiceVehicleDelete(String imei){
+        serviceGetVehicleOfOwner = new ServiceGetVehicleOfOwner(this, dialog, "delete");
+        serviceGetVehicleOfOwner.refreshLocalisation(urlVehicleDelete+imei, null);
+        callServiceVehicleDisplay();
     }
 }

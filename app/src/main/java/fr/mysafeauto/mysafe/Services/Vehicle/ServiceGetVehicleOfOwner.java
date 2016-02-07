@@ -4,6 +4,7 @@ package fr.mysafeauto.mysafe.Services.Vehicle;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,13 +24,19 @@ public class ServiceGetVehicleOfOwner {
     private ServiceCallBack callBack;
     private Exception error;
     private ProgressDialog dialog;
+    private String service;
 
-    public ServiceGetVehicleOfOwner(ServiceCallBack callBack, ProgressDialog progressDialog) {
+    public ServiceGetVehicleOfOwner(ServiceCallBack callBack, ProgressDialog progressDialog, String service) {
+        this.service = service;
         this.dialog = progressDialog;
         this.callBack = callBack;
     }
 
-    public void refreshLocalisation(final String endpoint){
+    public void setService(String service) {
+        this.service = service;
+    }
+
+    public void refreshLocalisation(final String endpoint, final String postParam){
 
         new AsyncTask<String, Void, List<Vehicle>>() {
 
@@ -44,7 +51,26 @@ public class ServiceGetVehicleOfOwner {
             @Override
             protected List<Vehicle> doInBackground(String... params) {
                 try{
-                   return findAllItems(params[0]);
+
+                    switch (service){
+                        case "display":
+                            // Vehicle Display to ListView
+                            return findAllItems(params[0]);
+                        case "create":
+                            // Vehicle Create
+                            WebServiceUtil.requestWebService2(params[0], params[1], "POST");
+                            return null;
+                        case "delete":
+                            //Vehicle Delete
+                            WebServiceUtil.requestWebService2(params[0],null, "DELETE");
+                            return null;
+                        case "edit":
+                            //Vehicle Edit
+                            return null;
+                        default:
+                            throw (new Exception("Unknown Service : Vehicle"));
+                    }
+
                 } catch (Exception e) {
                     error = e;
                 }
@@ -56,18 +82,42 @@ public class ServiceGetVehicleOfOwner {
                 if (dialog.isShowing()) {
                     dialog.dismiss();
                 }
-                if(vehicles == null && error !=null){
-                    callBack.serviceFailure(error);
-                    return;
+                try {
+                    switch (service) {
+                        case "display":
+                            // Vehicle Display to ListView
+                            if(vehicles == null && error !=null){
+                                callBack.serviceFailure(error);
+                                return;
+                            }
+                            callBack.serviceSuccess(vehicles, 2);
+                            return;
+                        case "create":
+                            // Vehicle Create
+                            callBack.serviceSuccess("Success", 3);
+                            return;
+                        case "delete":
+                            //Vehicle Delete
+                            callBack.serviceSuccess("Success", 4);
+                            return;
+                        case "edit":
+                            //Vehicle Edit
+                            return;
+                        default:
+                            throw (new Exception("Unknown Service : Vehicle"));
+                    }
                 }
-                callBack.serviceSuccess(vehicles, 2);
+                catch (Exception e) {
+                    error = e;
+                }
+
             }
-        }.execute(endpoint);
+        }.execute(endpoint, postParam);
     }
 
     public List<Vehicle> findAllItems(String endpoint) throws JSONException {
         String s = null;
-        s = WebServiceUtil.requestWebService(endpoint);
+        s = WebServiceUtil.requestWebService2(endpoint,null, "GET");
 
 
         List<Vehicle> foundVehicles = new ArrayList<Vehicle>(20);
