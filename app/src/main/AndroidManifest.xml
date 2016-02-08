@@ -36,7 +36,7 @@
 
 
         <activity
-            android:name=".FormAddVehicleActivity"
+            android:name=".Forms.FormAddVehicleActivity"
             android:label="@string/title_activity_add"
             android:parentActivityName=".MainActivity" >
         </activity>

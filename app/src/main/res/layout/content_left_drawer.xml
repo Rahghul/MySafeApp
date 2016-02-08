@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <include
+            layout="@layout/nav_header_left_drawer"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:layout_gravity="left"
+            android:choiceMode="singleChoice"/>
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/leftListView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:divider="#678FBA"
+        android:dividerHeight="2dp"
+        android:choiceMode="singleChoice" />
+
+</LinearLayout>

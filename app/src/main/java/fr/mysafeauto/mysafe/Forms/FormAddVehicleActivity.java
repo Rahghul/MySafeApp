@@ -1,4 +1,4 @@
-package fr.mysafeauto.mysafe;
+package fr.mysafeauto.mysafe.Forms;
 
 import android.content.Context;
 import android.content.Intent;
@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import fr.mysafeauto.mysafe.Filter.InputFilterMinMax;
+import fr.mysafeauto.mysafe.R;
 import fr.mysafeauto.mysafe.Services.Vehicle.Vehicle;
 
 /**

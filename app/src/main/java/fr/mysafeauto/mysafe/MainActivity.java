@@ -30,11 +30,18 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.mysafeauto.mysafe.Services.Coordinate.CustomAdapterLeft;
+import fr.mysafeauto.mysafe.Services.Coordinate.ServiceGetCoordinate;
+import fr.mysafeauto.mysafe.Services.Vehicle.CustomAdapterRight;
+import fr.mysafeauto.mysafe.Forms.FormAddVehicleActivity;
+import fr.mysafeauto.mysafe.Services.Vehicle.OnSwipeTouchListener;
+import fr.mysafeauto.mysafe.Services.Coordinate.Coordinate;
 import fr.mysafeauto.mysafe.Services.ServiceCallBack;
-import fr.mysafeauto.mysafe.Services.Vehicle.ServiceGetVehicleOfOwner;
+import fr.mysafeauto.mysafe.Services.Vehicle.ServiceGetVehicle;
 import fr.mysafeauto.mysafe.Services.Vehicle.Vehicle;
 
 
@@ -43,21 +50,20 @@ public class MainActivity extends AppCompatActivity
 
     private GoogleMap mMap;
 
-    List<Vehicle> vehicleList = new ArrayList<Vehicle>();;
-    ListView vehicleListView;
     DrawerLayout drawer;
-    CustomAdapter vehicleAdapter;
-
-    ImageView btn_add_vehicle;
+    ActionBarDrawerToggle toggle;
     Context mContext;
 
-    ActionBarDrawerToggle toggle;
-
+    // Right drawer elements
+    List<Vehicle> rightList = new ArrayList<Vehicle>();
+    ListView rightListView;
+    CustomAdapterRight rightAdapter;
+    ImageView btn_add_vehicle;
     ImageView delete;
     ImageView edit;
 
     ProgressDialog dialog;
-    ServiceGetVehicleOfOwner serviceGetVehicleOfOwner;
+    ServiceGetVehicle serviceGetVehicle;
     //String urlVehicleDisplay = "http://mysafe.cloudapp.net/mysafe/rest/owners/id/1/vehicles";
     String urlVehicleDisplay = "http://mysafe.cloudapp.net/mysafe/rest/vehicles";
     String urlVehicleCreate = "http://mysafe.cloudapp.net/mysafe/rest/vehicles/create?owner_id=1";
@@ -65,18 +71,62 @@ public class MainActivity extends AppCompatActivity
     String postParam;
 
     int position = 0;
+
+    // Left drawer elements
+    List<Coordinate> leftList = new ArrayList<Coordinate>();
+    ListView leftListView;
+    CustomAdapterLeft leftAdapter;
+
+    ServiceGetCoordinate serviceGetCoordinate;
+    String urlCooridnateDisplay="http://mysafe.cloudapp.net/mysafe/rest/coordinates/imei/";
+
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
 
-        vehicleListView = (ListView)findViewById(R.id.rightListView);
+        rightListView = (ListView)findViewById(R.id.rightListView);
+        leftListView = (ListView)findViewById(R.id.leftListView);
+
         dialog = new ProgressDialog(this);
 
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close){
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+                for(int i=0; i< rightList.size();i++){
+                    hideDeleteEditButton(i);
+                }
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+
+            }
+
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+                super.onDrawerSlide(drawerView, slideOffset);
+                for(int i=0; i< rightList.size();i++){
+                    hideDeleteEditButton(i);
+                }
+            }
+        };
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        //MAJ des services
         callServiceVehicleDisplay();
+        callServiceCoordinateDisplay("12345678901");
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -87,14 +137,10 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+
+        //NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        //navigationView.setNavigationItemSelectedListener(this);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -113,26 +159,21 @@ public class MainActivity extends AppCompatActivity
 
 
 
-        //viewDBApp();
-        vehicleListView.setOnTouchListener(new OnSwipeTouchListener(this, vehicleListView) {
-
-            //   @Override
-     /*       public void onSwipeRight(int pos) {
-
-                Toast.makeText(MainActivity.this, "right", Toast.LENGTH_LONG).show();
-                showMessage("Error", "No records found but table exist");
-            }*/
-
+        rightListView.setOnTouchListener(new OnSwipeTouchListener(this, rightListView) {
+            /*   @Override
+               public void onSwipeRight(int pos) {
+                   showDeleteEditButton(pos);
+               }*/
             @Override
             public void onSwipeLeft(int pos) {
-
                 showDeleteEditButton(pos);
             }
         });
-       // vehicleAdapter.notifyDataSetChanged();
+
 
 
     }
+
 
 
 
@@ -145,17 +186,15 @@ public class MainActivity extends AppCompatActivity
     }
 
     private boolean showDeleteEditButton(int pos) {
+        hideDeleteEditButton(position);
         position = pos;
-        View child = vehicleListView.getChildAt(pos - vehicleListView.getFirstVisiblePosition());
+        View child = rightListView.getChildAt(pos - rightListView.getFirstVisiblePosition());
         if (child != null) {
-
             delete = (ImageView) child.findViewById(R.id.delete);
             edit = (ImageView) child.findViewById(R.id.edit);
             if (delete != null) {
                 if (delete.getVisibility() == View.INVISIBLE) {
-                    Animation animationLeft =
-                            AnimationUtils.loadAnimation(this,
-                                    R.anim.slide_out_left);
+                    Animation animationLeft = AnimationUtils.loadAnimation(this,R.anim.slide_out_left);
                     delete.startAnimation(animationLeft);
                     delete.setVisibility(View.VISIBLE);
                     edit.setAnimation(animationLeft);
@@ -163,7 +202,7 @@ public class MainActivity extends AppCompatActivity
                     delete.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            callServiceVehicleDelete(vehicleList.get(position).getImei().toString());
+                            callServiceVehicleDelete(rightList.get(position).getImei().toString());
                         }
                     });
                     edit.setOnClickListener(new View.OnClickListener() {
@@ -171,18 +210,16 @@ public class MainActivity extends AppCompatActivity
                         public void onClick(View v) {
 
                             Intent intent  = new Intent(mContext,FormAddVehicleActivity.class);
-                            intent.putExtra("old_imei", vehicleList.get(position).getImei().toString());
-                            intent.putExtra("old_brand", vehicleList.get(position).getBrand().toString());
-                            intent.putExtra("old_color", vehicleList.get(position).getColor().toString());
+                            intent.putExtra("old_imei", rightList.get(position).getImei().toString());
+                            intent.putExtra("old_brand", rightList.get(position).getBrand().toString());
+                            intent.putExtra("old_color", rightList.get(position).getColor().toString());
                             startActivityForResult(intent, 3);
 
                         }
                     });
 
                 } else {
-                    Animation animationRight =
-                            AnimationUtils.loadAnimation(this,
-                                    R.anim.slide_in_right);
+                    Animation animationRight = AnimationUtils.loadAnimation(this,R.anim.slide_in_right);
                     delete.startAnimation(animationRight);
                     delete.setVisibility(View.INVISIBLE);
                     edit.startAnimation(animationRight);
@@ -195,6 +232,25 @@ public class MainActivity extends AppCompatActivity
         return false;
     }
 
+
+    private boolean hideDeleteEditButton(int pos) {
+        position = pos;
+        View child = rightListView.getChildAt(pos - rightListView.getFirstVisiblePosition());
+        if (child != null) {
+
+            delete = (ImageView) child.findViewById(R.id.delete);
+            edit = (ImageView) child.findViewById(R.id.edit);
+            if (delete != null && edit != null) {
+                //Animation animationRight = AnimationUtils.loadAnimation(this,R.anim.slide_in_right);
+               // delete.startAnimation(animationRight);
+                delete.setVisibility(View.INVISIBLE);
+               // edit.startAnimation(animationRight);
+                edit.setVisibility(View.INVISIBLE);
+            }
+            return true;
+        }
+        return false;
+    }
 
     // Call Back method  to get the Message form other Activity    override the method
     @Override
@@ -247,7 +303,7 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            drawer.openDrawer(vehicleListView);
+            drawer.openDrawer(rightListView);
             return true;
         }
 
@@ -314,11 +370,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void serviceSuccess(Object object, int id_srv) {
         if(id_srv == 2) {
-            vehicleList.clear();
-            vehicleList = (List<Vehicle>) object;
-         //   vehicleAdapter.notifyDataSetChanged();
-            vehicleAdapter = new CustomAdapter(this, vehicleList);
-            vehicleListView.setAdapter(vehicleAdapter);
+            //Vehicle display
+            rightList.clear();
+            rightList = (List<Vehicle>) object;
+            rightAdapter = new CustomAdapterRight(this, rightList);
+            rightListView.setAdapter(rightAdapter);
         }
         if(id_srv == 3){
             //showMessage("Result", "Vehicle added.");
@@ -327,7 +383,14 @@ public class MainActivity extends AppCompatActivity
             //showMessage("Result","Vehicle deleted.");
         }
 
+        if(id_srv == 5){
+            // Coordinate display
+            leftList.clear();
+            leftList = (List<Coordinate>) object;
 
+            leftAdapter = new CustomAdapterLeft(this, leftList);
+            leftListView.setAdapter(leftAdapter);
+        }
     }
 
     @Override
@@ -337,20 +400,25 @@ public class MainActivity extends AppCompatActivity
 
 
     public void callServiceVehicleDisplay(){
-        serviceGetVehicleOfOwner = new ServiceGetVehicleOfOwner(this, dialog, "display");
-        serviceGetVehicleOfOwner.refreshLocalisation(urlVehicleDisplay, null);
+        serviceGetVehicle = new ServiceGetVehicle(this, dialog, "display");
+        serviceGetVehicle.refreshLocalisation(urlVehicleDisplay, null);
     }
 
     public void callServiceVehicleCreate(){
-        serviceGetVehicleOfOwner = new ServiceGetVehicleOfOwner(this, dialog, "create");
-        serviceGetVehicleOfOwner.refreshLocalisation(urlVehicleCreate, postParam);
+        serviceGetVehicle = new ServiceGetVehicle(this, dialog, "create");
+        serviceGetVehicle.refreshLocalisation(urlVehicleCreate, postParam);
         callServiceVehicleDisplay();
 
     }
 
     public void callServiceVehicleDelete(String imei){
-        serviceGetVehicleOfOwner = new ServiceGetVehicleOfOwner(this, dialog, "delete");
-        serviceGetVehicleOfOwner.refreshLocalisation(urlVehicleDelete+imei, null);
+        serviceGetVehicle = new ServiceGetVehicle(this, dialog, "delete");
+        serviceGetVehicle.refreshLocalisation(urlVehicleDelete + imei, null);
         callServiceVehicleDisplay();
+    }
+
+    public void callServiceCoordinateDisplay(String imei){
+        serviceGetCoordinate = new ServiceGetCoordinate(this, dialog);
+        serviceGetCoordinate.refreshLocalisation(urlCooridnateDisplay+imei);
     }
 }

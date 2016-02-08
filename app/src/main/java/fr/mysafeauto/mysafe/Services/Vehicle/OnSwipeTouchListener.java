@@ -1,4 +1,4 @@
-package fr.mysafeauto.mysafe;
+package fr.mysafeauto.mysafe.Services.Vehicle;
 
 import android.content.Context;
 import android.view.GestureDetector;

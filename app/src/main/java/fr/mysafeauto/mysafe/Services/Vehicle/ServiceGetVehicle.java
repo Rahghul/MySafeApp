@@ -20,13 +20,13 @@ import fr.mysafeauto.mysafe.Services.WebServiceUtil;
  * Created by Rahghul on 06/02/2016.
  */
 
-public class ServiceGetVehicleOfOwner {
+public class ServiceGetVehicle {
     private ServiceCallBack callBack;
     private Exception error;
     private ProgressDialog dialog;
-    private String service;
+    private String service; // option: create, delete, update, display
 
-    public ServiceGetVehicleOfOwner(ServiceCallBack callBack, ProgressDialog progressDialog, String service) {
+    public ServiceGetVehicle(ServiceCallBack callBack, ProgressDialog progressDialog, String service) {
         this.service = service;
         this.dialog = progressDialog;
         this.callBack = callBack;
