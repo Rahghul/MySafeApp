@@ -1,11 +1,13 @@
 package fr.mysafeauto.mysafe.Services.Vehicle;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -52,6 +54,8 @@ public class CustomAdapterRight extends BaseAdapter {
             holder.textViewBrand = (TextView) convertView.findViewById(R.id.txt_item_brand);
             holder.textViewColor = (TextView) convertView.findViewById(R.id.txt_item_color);
             holder.textViewIMEI = (TextView) convertView.findViewById(R.id.txt_item_imei);
+            if(position == 0)
+                convertView.setBackgroundColor(Color.parseColor("#678FBA"));
 
             holder.imageDel = (ImageView) convertView.findViewById(R.id.delete);
             holder.imageEdit = (ImageView) convertView.findViewById(R.id.edit);
@@ -63,8 +67,8 @@ public class CustomAdapterRight extends BaseAdapter {
         holder.textViewColor.setText(vehicleList.get(position).getColor().toString());
         holder.textViewIMEI.setText(vehicleList.get(position).getImei().toString());
 
-        holder.imageDel.setImageResource(R.drawable.ic_delete_red);
-        holder.imageEdit.setImageResource(R.drawable.ic_build_blue);
+        holder.imageDel.setImageResource(R.drawable.ic_delete_black);
+        holder.imageEdit.setImageResource(R.drawable.ic_build_black);
         holder.textViewBrand.setTag(String.valueOf(position));
         holder.textViewColor.setTag(String.valueOf(position));
         holder.textViewIMEI.setTag(String.valueOf(position));

@@ -76,8 +76,7 @@ public class ServiceGetCoordinate {
 
         List<Coordinate> foundCoordinates = new ArrayList<Coordinate>();
 
-        JSONArray data = null;
-        data = new JSONArray(s);
+        JSONArray data = new JSONArray(s);
         for(int i =0; i<data.length(); i++){
             JSONObject p = null;
             p = data.getJSONObject(i);

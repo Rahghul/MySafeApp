@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -19,6 +20,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -33,6 +35,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import fr.mysafeauto.mysafe.Services.Coordinate.CustomAdapterLeft;
 import fr.mysafeauto.mysafe.Services.Coordinate.ServiceGetCoordinate;
@@ -64,14 +67,14 @@ public class MainActivity extends AppCompatActivity
 
     ProgressDialog dialog;
     ServiceGetVehicle serviceGetVehicle;
-    //String urlVehicleDisplay = "http://mysafe.cloudapp.net/mysafe/rest/owners/id/1/vehicles";
-    String urlVehicleDisplay = "http://mysafe.cloudapp.net/mysafe/rest/vehicles";
+    String urlVehicleDisplay = "http://mysafe.cloudapp.net/mysafe/rest/owners/id/1/vehicles";
+    //String urlVehicleDisplay = "http://mysafe.cloudapp.net/mysafe/rest/vehicles";
     String urlVehicleCreate = "http://mysafe.cloudapp.net/mysafe/rest/vehicles/create?owner_id=1";
     String urlVehicleDelete="http://mysafe.cloudapp.net/mysafe/rest/vehicles/delete/";
     String postParam;
 
     int position = 0;
-
+    int savedItemPos = 0;
     // Left drawer elements
     List<Coordinate> leftList = new ArrayList<Coordinate>();
     ListView leftListView;
@@ -93,6 +96,21 @@ public class MainActivity extends AppCompatActivity
 
 
         rightListView = (ListView)findViewById(R.id.rightListView);
+        rightListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Object o = rightListView.getItemAtPosition(position);
+                callServiceCoordinateDisplay(((Vehicle) o).getImei());
+                rightAdapter.notifyDataSetChanged();
+                parent.getChildAt(position).setBackgroundColor(Color.parseColor("#678FBA"));
+
+                if (savedItemPos != position){
+                    parent.getChildAt(savedItemPos).setBackgroundColor(Color.TRANSPARENT);
+                }
+
+                savedItemPos = position;
+            }
+        });
         leftListView = (ListView)findViewById(R.id.leftListView);
 
         dialog = new ProgressDialog(this);
@@ -126,7 +144,8 @@ public class MainActivity extends AppCompatActivity
 
         //MAJ des services
         callServiceVehicleDisplay();
-        callServiceCoordinateDisplay("12345678901");
+        //showMessage("rightList",rightList.get(1).toString());
+        //callServiceCoordinateDisplay(rightList.get(1).getImei());
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -375,6 +394,7 @@ public class MainActivity extends AppCompatActivity
             rightList = (List<Vehicle>) object;
             rightAdapter = new CustomAdapterRight(this, rightList);
             rightListView.setAdapter(rightAdapter);
+            callServiceCoordinateDisplay(rightList.get(0).getImei());
         }
         if(id_srv == 3){
             //showMessage("Result", "Vehicle added.");

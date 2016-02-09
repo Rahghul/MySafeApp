@@ -81,7 +81,7 @@ public class WebServiceUtil {
             urlConnection.setReadTimeout(DATARETRIEVAL_TIMEOUT);
 
             // handle POST parameters
-            if (postParameters != null && method == "POST") {
+            if (postParameters != null && method.equals("POST")) {
 
                 if (Log.isLoggable(LOGGER_TAG, Log.INFO)) {
                     Log.i(LOGGER_TAG, "POST parameters: " + postParameters);
@@ -97,7 +97,7 @@ public class WebServiceUtil {
                 out.print(postParameters);
                 out.close();
             }
-            if(method == "DELETE"){
+            if(method.equals("DELETE")){
                 urlConnection.setRequestProperty("Content-Type","application/x-www-form-urlencoded");
                 urlConnection.setRequestMethod("DELETE");
             }
