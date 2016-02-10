@@ -16,13 +16,13 @@ import fr.mysafeauto.mysafe.R;
 /**
  * Created by Rahghul on 08/02/2016.
  */
-public class CustomAdapterLeft extends BaseAdapter {
+public class CustomAdapterCoordinate extends BaseAdapter {
 
     Context context;
     LayoutInflater layoutInflater;
     List<Coordinate> coordinateList;
 
-    public CustomAdapterLeft(Context context, List<Coordinate> coordinateList) {
+    public CustomAdapterCoordinate(Context context, List<Coordinate> coordinateList) {
         super();
         this.context = context;
         this.coordinateList = coordinateList;

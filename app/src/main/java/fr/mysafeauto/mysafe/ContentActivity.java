@@ -25,6 +25,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -39,11 +40,11 @@ import java.util.List;
 
 import fr.mysafeauto.mysafe.Forms.FormAddVehicleActivity;
 import fr.mysafeauto.mysafe.Services.Coordinate.Coordinate;
-import fr.mysafeauto.mysafe.Services.Coordinate.CustomAdapterLeft;
+import fr.mysafeauto.mysafe.Services.Coordinate.CustomAdapterCoordinate;
 import fr.mysafeauto.mysafe.Services.Coordinate.ServiceGetCoordinate;
 import fr.mysafeauto.mysafe.Services.Owner.Owner;
 import fr.mysafeauto.mysafe.Services.ServiceCallBack;
-import fr.mysafeauto.mysafe.Services.Vehicle.CustomAdapterRight;
+import fr.mysafeauto.mysafe.Services.Vehicle.CustomAdapterVehicle;
 import fr.mysafeauto.mysafe.Services.Vehicle.OnSwipeTouchListener;
 import fr.mysafeauto.mysafe.Services.Vehicle.ServiceGetVehicle;
 import fr.mysafeauto.mysafe.Services.Vehicle.Vehicle;
@@ -63,7 +64,7 @@ public class ContentActivity extends AppCompatActivity
     // Right drawer elements
     List<Vehicle> vehicleList = new ArrayList<Vehicle>();
     ListView vehicleListView;
-    CustomAdapterRight vehicleAdapter;
+    CustomAdapterVehicle vehicleAdapter;
     ImageView btn_add_vehicle;
     ImageView delete;
     ImageView edit;
@@ -81,13 +82,19 @@ public class ContentActivity extends AppCompatActivity
     // Left drawer elements
     List<Coordinate> coordinateList = new ArrayList<Coordinate>();
     ListView coordinateListView;
-    CustomAdapterLeft coordinateAdapter;
+    CustomAdapterCoordinate coordinateAdapter;
 
     ServiceGetCoordinate serviceGetCoordinate;
     String urlCooridnateDisplay="http://mysafe.cloudapp.net/mysafe/rest/coordinates/imei/";
 
     Owner owner;
     SQLiteDatabase db;
+    TextView tv_owner_firstname;
+    TextView tv_owner_lastname;
+    TextView tv_owner_email;
+
+    TextView tv_vehicle_brand;
+    TextView tv_vehicle_color;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,6 +110,19 @@ public class ContentActivity extends AppCompatActivity
             urlVehicleCreate = "http://mysafe.cloudapp.net/mysafe/rest/vehicles/create?owner_id="+owner.getId()+"";
         }
 
+        tv_owner_firstname = (TextView)findViewById(R.id.txt_owner_firstname);
+        tv_owner_lastname = (TextView)findViewById(R.id.txt_owner_lastname);
+        tv_owner_email = (TextView)findViewById(R.id.txt_owner_email);
+
+        tv_vehicle_brand = (TextView)findViewById(R.id.txt_vehicle_brand);
+        tv_vehicle_color = (TextView)findViewById(R.id.txt_vehicle_color);
+        tv_vehicle_color.setVisibility(View.INVISIBLE);
+        tv_vehicle_brand.setVisibility(View.INVISIBLE);
+
+        tv_owner_firstname.setText(owner.getFirst_name().toString());
+        tv_owner_lastname.setText(owner.getLast_name().toString());
+        tv_owner_email.setText(owner.getEmail().toString());
+
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
         vehicleListView = (ListView)findViewById(R.id.rightListView);
@@ -114,6 +134,10 @@ public class ContentActivity extends AppCompatActivity
                 drawer.closeDrawer(Gravity.LEFT);
                 drawer.openDrawer(Gravity.RIGHT);
 
+                //Mettre à jour le header coordonnee
+                tv_vehicle_brand.setText(((Vehicle)o).getBrand());
+                tv_vehicle_color.setText(((Vehicle)o).getColor());
+
                 parent.getChildAt(position).setBackgroundColor(Color.parseColor("#678FBA"));
                 if (savedItemPos != position) {
                     parent.getChildAt(savedItemPos).setBackgroundColor(Color.TRANSPARENT);
@@ -124,10 +148,10 @@ public class ContentActivity extends AppCompatActivity
         });
         coordinateListView = (ListView)findViewById(R.id.leftListView);
 
-        vehicleAdapter = new CustomAdapterRight(this, vehicleList);
+        vehicleAdapter = new CustomAdapterVehicle(this, vehicleList);
         vehicleListView.setAdapter(vehicleAdapter);
 
-        coordinateAdapter = new CustomAdapterLeft(this, coordinateList);
+        coordinateAdapter = new CustomAdapterCoordinate(this, coordinateList);
         coordinateListView.setAdapter(coordinateAdapter);
 
         dialog = new ProgressDialog(this);
@@ -329,31 +353,6 @@ public class ContentActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-  /*  @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
-    }*/
-
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -396,6 +395,11 @@ public class ContentActivity extends AppCompatActivity
                 vehicleList.addAll((List<Vehicle>) object);
                 vehicleAdapter.notifyDataSetChanged();
                 callServiceCoordinateDisplay(vehicleList.get(0).getImei());
+                tv_vehicle_color.setVisibility(View.VISIBLE);
+                tv_vehicle_brand.setVisibility(View.VISIBLE);
+                //Mettre à jour le header coordonnee
+                tv_vehicle_brand.setText(vehicleList.get(0).getBrand());
+                tv_vehicle_color.setText(vehicleList.get(0).getColor());
             }
             else
                 showMessage("Info","Your vehicle list is empty, add vehicles to track them.");

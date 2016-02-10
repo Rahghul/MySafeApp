@@ -16,12 +16,12 @@ import fr.mysafeauto.mysafe.R;
 /**
  * Created by soham on 3/5/15.
  */
-public class CustomAdapterRight extends BaseAdapter {
+public class CustomAdapterVehicle extends BaseAdapter {
     Context context;
     LayoutInflater layoutInflater;
     List<Vehicle> vehicleList;
 
-    public CustomAdapterRight(Context context, List<Vehicle> vehicleList) {
+    public CustomAdapterVehicle(Context context, List<Vehicle> vehicleList) {
         super();
         this.vehicleList = vehicleList;
         this.context = context;
