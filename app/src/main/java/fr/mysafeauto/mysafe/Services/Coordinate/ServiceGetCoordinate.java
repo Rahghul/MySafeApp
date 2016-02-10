@@ -56,7 +56,7 @@ public class ServiceGetCoordinate {
                     dialog.dismiss();
                 }
                 try {
-                    if (coordinates == null && error != null) {
+                    if (error != null) {
                         callBack.serviceFailure(error);
                         return;
                     }

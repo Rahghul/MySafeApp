@@ -3,6 +3,7 @@ package fr.mysafeauto.mysafe;
 import android.accounts.AccountManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity
     String mEmail; // Received from newChooseAccountIntent(); passed to getToken()
     String dbEmail;
 
+    ProgressDialog dialog;
     SQLiteDatabase db;
     ServiceGetOwner serviceGetOwner;
     ServiceCreateOwner serviceCreateOwner;
@@ -45,11 +47,12 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        dialog = new ProgressDialog(this);
+
         db = openOrCreateDatabase("MysafeAppDB", Context.MODE_PRIVATE, null);
         db.execSQL("CREATE TABLE IF NOT EXISTS owners(id INT, first_name VARCHAR,last_name VARCHAR,email VARCHAR, passwd VARCHAR);");
 
-       // dbEmail = getEmailFromInternalDb();
-        //dbEmail = "rahghul.madivanane@gmail.com";
+        dbEmail = getEmailFromInternalDb();
         if(dbEmail == null) {
             pickUserAccount();
         }
@@ -106,7 +109,7 @@ public class MainActivity extends AppCompatActivity
         if (email == null) {
             pickUserAccount();
         } else {
-            serviceGetOwner = new ServiceGetOwner(this, email);
+            serviceGetOwner = new ServiceGetOwner(this, email, dialog);
             serviceGetOwner.refreshOwner();
         }
     }
@@ -125,7 +128,7 @@ public class MainActivity extends AppCompatActivity
         if (id_srv == 0) {
             owner = (Owner)object;
             if(owner == null){
-                serviceCreateOwner = new ServiceCreateOwner(MainActivity.this, mEmail, SCOPE, this);
+                serviceCreateOwner = new ServiceCreateOwner(MainActivity.this, mEmail, SCOPE, this, dialog);
                 serviceCreateOwner.createOwner();
                 //new ServiceCreateOwner(MainActivity.this, mEmail, SCOPE, this).execute();
             }
@@ -144,7 +147,7 @@ public class MainActivity extends AppCompatActivity
             Boolean accessLogin = (Boolean) object;
             if (accessLogin == true) {
                 //viewDBApp();
-                serviceGetOwner = new ServiceGetOwner(this, mEmail);
+                serviceGetOwner = new ServiceGetOwner(this, mEmail, dialog);
                 serviceGetOwner.refreshOwner();
                 //new ServiceGetOwner(this, mEmail).execute();
             }

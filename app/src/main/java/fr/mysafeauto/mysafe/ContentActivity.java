@@ -15,6 +15,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -60,9 +61,9 @@ public class ContentActivity extends AppCompatActivity
     Context mContext;
 
     // Right drawer elements
-    List<Vehicle> rightList = new ArrayList<Vehicle>();
-    ListView rightListView;
-    CustomAdapterRight rightAdapter;
+    List<Vehicle> vehicleList = new ArrayList<Vehicle>();
+    ListView vehicleListView;
+    CustomAdapterRight vehicleAdapter;
     ImageView btn_add_vehicle;
     ImageView delete;
     ImageView edit;
@@ -78,9 +79,9 @@ public class ContentActivity extends AppCompatActivity
     int savedItemPos = 0;
 
     // Left drawer elements
-    List<Coordinate> leftList = new ArrayList<Coordinate>();
-    ListView leftListView;
-    CustomAdapterLeft leftAdapter;
+    List<Coordinate> coordinateList = new ArrayList<Coordinate>();
+    ListView coordinateListView;
+    CustomAdapterLeft coordinateAdapter;
 
     ServiceGetCoordinate serviceGetCoordinate;
     String urlCooridnateDisplay="http://mysafe.cloudapp.net/mysafe/rest/coordinates/imei/";
@@ -102,32 +103,40 @@ public class ContentActivity extends AppCompatActivity
             urlVehicleCreate = "http://mysafe.cloudapp.net/mysafe/rest/vehicles/create?owner_id="+owner.getId()+"";
         }
 
-        rightListView = (ListView)findViewById(R.id.rightListView);
-        rightListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        vehicleListView = (ListView)findViewById(R.id.rightListView);
+        vehicleListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Object o = rightListView.getItemAtPosition(position);
+                Object o = vehicleListView.getItemAtPosition(position);
                 callServiceCoordinateDisplay(((Vehicle) o).getImei());
-                rightAdapter.notifyDataSetChanged();
+                drawer.closeDrawer(Gravity.LEFT);
+                drawer.openDrawer(Gravity.RIGHT);
+
                 parent.getChildAt(position).setBackgroundColor(Color.parseColor("#678FBA"));
-             //   setContentView(R.layout.activity_main);
-                if (savedItemPos != position){
+                if (savedItemPos != position) {
                     parent.getChildAt(savedItemPos).setBackgroundColor(Color.TRANSPARENT);
                 }
 
                 savedItemPos = position;
             }
         });
-        leftListView = (ListView)findViewById(R.id.leftListView);
+        coordinateListView = (ListView)findViewById(R.id.leftListView);
+
+        vehicleAdapter = new CustomAdapterRight(this, vehicleList);
+        vehicleListView.setAdapter(vehicleAdapter);
+
+        coordinateAdapter = new CustomAdapterLeft(this, coordinateList);
+        coordinateListView.setAdapter(coordinateAdapter);
 
         dialog = new ProgressDialog(this);
 
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close){
             @Override
             public void onDrawerClosed(View drawerView) {
                 super.onDrawerClosed(drawerView);
-                for(int i=0; i< rightList.size();i++){
+                for(int i=0; i< vehicleList.size();i++){
                     hideDeleteEditButton(i);
                 }
             }
@@ -141,7 +150,7 @@ public class ContentActivity extends AppCompatActivity
             @Override
             public void onDrawerSlide(View drawerView, float slideOffset) {
                 super.onDrawerSlide(drawerView, slideOffset);
-                for(int i=0; i< rightList.size();i++){
+                for(int i=0; i< vehicleList.size();i++){
                     hideDeleteEditButton(i);
                 }
             }
@@ -178,11 +187,12 @@ public class ContentActivity extends AppCompatActivity
 
 
 
-        rightListView.setOnTouchListener(new OnSwipeTouchListener(this, rightListView) {
+        vehicleListView.setOnTouchListener(new OnSwipeTouchListener(this, vehicleListView) {
             @Override
             public void onSwipeRight(int pos) {
                 showDeleteEditButton(pos);
             }
+
             @Override
             public void onSwipeLeft(int pos) {
 
@@ -199,7 +209,7 @@ public class ContentActivity extends AppCompatActivity
     private boolean showDeleteEditButton(int pos) {
         hideDeleteEditButton(position);
         position = pos;
-        View child = rightListView.getChildAt(pos - rightListView.getFirstVisiblePosition());
+        View child = vehicleListView.getChildAt(pos - vehicleListView.getFirstVisiblePosition());
         if (child != null) {
             delete = (ImageView) child.findViewById(R.id.delete);
             edit = (ImageView) child.findViewById(R.id.edit);
@@ -213,7 +223,7 @@ public class ContentActivity extends AppCompatActivity
                     delete.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            callServiceVehicleDelete(rightList.get(position).getImei().toString());
+                            callServiceVehicleDelete(vehicleList.get(position).getImei().toString());
                         }
                     });
                     edit.setOnClickListener(new View.OnClickListener() {
@@ -221,9 +231,9 @@ public class ContentActivity extends AppCompatActivity
                         public void onClick(View v) {
 
                             Intent intent  = new Intent(mContext,FormAddVehicleActivity.class);
-                            intent.putExtra("old_imei", rightList.get(position).getImei().toString());
-                            intent.putExtra("old_brand", rightList.get(position).getBrand().toString());
-                            intent.putExtra("old_color", rightList.get(position).getColor().toString());
+                            intent.putExtra("old_imei", vehicleList.get(position).getImei().toString());
+                            intent.putExtra("old_brand", vehicleList.get(position).getBrand().toString());
+                            intent.putExtra("old_color", vehicleList.get(position).getColor().toString());
                             startActivityForResult(intent, 3);
 
                         }
@@ -246,7 +256,7 @@ public class ContentActivity extends AppCompatActivity
 
     private boolean hideDeleteEditButton(int pos) {
         position = pos;
-        View child = rightListView.getChildAt(pos - rightListView.getFirstVisiblePosition());
+        View child = vehicleListView.getChildAt(pos - vehicleListView.getFirstVisiblePosition());
         if (child != null) {
 
             delete = (ImageView) child.findViewById(R.id.delete);
@@ -312,7 +322,7 @@ public class ContentActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            drawer.openDrawer(rightListView);
+            drawer.openDrawer(vehicleListView);
             return true;
         }
 
@@ -381,12 +391,11 @@ public class ContentActivity extends AppCompatActivity
 
         if(id_srv == 2) {
             //Vehicle display
-            rightList.clear();
+            vehicleList.clear();
             if(object != null) {
-                rightList = (List<Vehicle>) object;
-                rightAdapter = new CustomAdapterRight(this, rightList);
-                rightListView.setAdapter(rightAdapter);
-                callServiceCoordinateDisplay(rightList.get(0).getImei());
+                vehicleList.addAll((List<Vehicle>) object);
+                vehicleAdapter.notifyDataSetChanged();
+                callServiceCoordinateDisplay(vehicleList.get(0).getImei());
             }
             else
                 showMessage("Info","Your vehicle list is empty, add vehicles to track them.");
@@ -400,12 +409,12 @@ public class ContentActivity extends AppCompatActivity
         }
 
         if(id_srv == 5){
-            // Coordinate display
-            leftList.clear();
-            leftList = (List<Coordinate>) object;
-
-            leftAdapter = new CustomAdapterLeft(this, leftList);
-            leftListView.setAdapter(leftAdapter);
+            coordinateList.clear();
+            if((List<Coordinate>) object != null){
+                // Coordinate display
+                coordinateList.addAll((List<Coordinate>) object);
+            }
+            coordinateAdapter.notifyDataSetChanged();
         }
     }
 

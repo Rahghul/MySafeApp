@@ -9,7 +9,7 @@
         android:orientation="horizontal">
 
         <include
-            layout="@layout/nav_header_left_drawer"
+            layout="@layout/nav_header_coord_drawer"
             android:layout_width="match_parent"
             android:layout_height="160dp"
             android:layout_gravity="left"

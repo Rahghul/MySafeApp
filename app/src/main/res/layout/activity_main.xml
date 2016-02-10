@@ -13,26 +13,26 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- The left navigation Drawer -->
+    <!-- The right navigation Drawer -->
     <android.support.design.widget.NavigationView
         android:layout_height="match_parent"
         android:layout_width="wrap_content"
         android:layout_gravity="right">
         <include
-            layout="@layout/content_left_drawer"
+            layout="@layout/content_coord_drawer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:choiceMode="singleChoice"/>
     </android.support.design.widget.NavigationView>
 
-    <!-- The right navigation Drawer -->
+    <!-- The left navigation Drawer -->
 
     <android.support.design.widget.NavigationView
         android:layout_height="match_parent"
         android:layout_width="wrap_content"
         android:layout_gravity="left">
         <include
-            layout="@layout/content_right_drawer"
+            layout="@layout/content_vehicle_drawer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:choiceMode="singleChoice"/>

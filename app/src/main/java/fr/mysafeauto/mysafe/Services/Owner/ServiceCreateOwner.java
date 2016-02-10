@@ -1,5 +1,6 @@
 package fr.mysafeauto.mysafe.Services.Owner;
 
+import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -28,20 +29,31 @@ public class ServiceCreateOwner{
     private Exception error;
     Owner owner;
     int statusCode;
+    ProgressDialog dialog;
 
-    public ServiceCreateOwner(MainActivity activity, String name, String scope, ServiceCallBack callBack) {
+    public ServiceCreateOwner(MainActivity activity, String name, String scope, ServiceCallBack callBack, ProgressDialog dialog) {
         this.mActivity = activity;
         this.mScope = scope;
         this.mEmail = name;
         this.callBack = callBack;
+        this.dialog = dialog;
     }
 
     public void createOwner() {
         new AsyncTask<Void, Void, Boolean>(){
-        /**
+            @Override
+            protected void onPreExecute() {
+                dialog.setMessage("Creating...");
+                dialog.show();
+            }
+
+            /**
          * Executes the asynchronous job. This runs when you call execute()
          * on the AsyncTask instance.
          */
+
+
+
         @Override
         protected Boolean doInBackground (Void...params){
             try {

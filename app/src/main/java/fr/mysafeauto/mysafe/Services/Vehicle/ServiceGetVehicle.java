@@ -42,8 +42,6 @@ public class ServiceGetVehicle {
 
             @Override
             protected void onPreExecute() {
-                // TODO i18n
-             //   dialog = new ProgressDialog(c);
                 dialog.setMessage("Please wait..");
                 dialog.show();
             }

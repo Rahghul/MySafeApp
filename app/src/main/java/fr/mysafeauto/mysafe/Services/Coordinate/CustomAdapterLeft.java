@@ -8,10 +8,6 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
-import java.sql.Date;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -53,7 +49,7 @@ public class CustomAdapterLeft extends BaseAdapter {
         ViewHolder holder;
         if (convertView == null) {
             holder = new ViewHolder();
-            convertView = layoutInflater.inflate(R.layout.one_item_list_left, null);
+            convertView = layoutInflater.inflate(R.layout.one_item_list_coord, null);
             holder.textViewLat = (TextView) convertView.findViewById(R.id.txt_item_lat);
             holder.textViewLon = (TextView) convertView.findViewById(R.id.txt_item_lon);
             holder.textViewSpeed = (TextView) convertView.findViewById(R.id.txt_item_speed);

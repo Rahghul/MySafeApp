@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -50,7 +49,7 @@ public class CustomAdapterRight extends BaseAdapter {
         ViewHolder holder;
         if (convertView == null) {
             holder = new ViewHolder();
-            convertView = layoutInflater.inflate(R.layout.one_item_list_right, null);
+            convertView = layoutInflater.inflate(R.layout.one_item_list_vehicle, null);
             holder.textViewBrand = (TextView) convertView.findViewById(R.id.txt_item_brand);
             holder.textViewColor = (TextView) convertView.findViewById(R.id.txt_item_color);
             holder.textViewIMEI = (TextView) convertView.findViewById(R.id.txt_item_imei);

@@ -1,5 +1,6 @@
 package fr.mysafeauto.mysafe.Services.Owner;
 
+import android.app.ProgressDialog;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -24,17 +25,26 @@ import fr.mysafeauto.mysafe.Services.WebServiceUtil;
  * Created by Rahghul on 10/02/2016.
  */
 public class ServiceGetOwner  {
-    String mEmail;
-    Exception error;
-    ServiceCallBack callBack;
+    private String mEmail;
+    private Exception error;
+    private ServiceCallBack callBack;
+    private ProgressDialog dialog;
 
-    public ServiceGetOwner(ServiceCallBack callBack, String email) {
+    public ServiceGetOwner(ServiceCallBack callBack, String email, ProgressDialog dialog) {
         this.mEmail = email;
         this.callBack = callBack;
+        this.dialog = dialog;
     }
 
     public void refreshOwner() {
         new AsyncTask<Void, Void, Owner>() {
+
+            @Override
+            protected void onPreExecute() {
+                dialog.setMessage("Please wait..");
+                dialog.show();
+            }
+
             /**
              * Executes the asynchronous job. This runs when you call execute()
              * on the AsyncTask instance.
