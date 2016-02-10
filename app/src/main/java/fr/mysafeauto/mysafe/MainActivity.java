@@ -1,383 +1,118 @@
 package fr.mysafeauto.mysafe;
 
+import android.accounts.AccountManager;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.MotionEvent;
+import android.util.Log;
 import android.view.View;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
-import android.widget.ImageView;
-import android.widget.ListView;
+import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.auth.GooglePlayServicesAvailabilityException;
+import com.google.android.gms.auth.UserRecoverableAuthException;
+import com.google.android.gms.common.AccountPicker;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-import fr.mysafeauto.mysafe.Services.Coordinate.CustomAdapterLeft;
-import fr.mysafeauto.mysafe.Services.Coordinate.ServiceGetCoordinate;
-import fr.mysafeauto.mysafe.Services.Vehicle.CustomAdapterRight;
-import fr.mysafeauto.mysafe.Forms.FormAddVehicleActivity;
-import fr.mysafeauto.mysafe.Services.Vehicle.OnSwipeTouchListener;
-import fr.mysafeauto.mysafe.Services.Coordinate.Coordinate;
+import fr.mysafeauto.mysafe.Services.Owner.Owner;
+import fr.mysafeauto.mysafe.Services.Owner.ServiceCreateOwner;
+import fr.mysafeauto.mysafe.Services.Owner.ServiceGetOwner;
 import fr.mysafeauto.mysafe.Services.ServiceCallBack;
-import fr.mysafeauto.mysafe.Services.Vehicle.ServiceGetVehicle;
-import fr.mysafeauto.mysafe.Services.Vehicle.Vehicle;
 
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, ServiceCallBack {
+        implements ServiceCallBack {
 
-    private GoogleMap mMap;
+    Button buttonLogin;
+    Owner owner;
 
-    DrawerLayout drawer;
-    ActionBarDrawerToggle toggle;
-    Context mContext;
+    static final int REQUEST_CODE_PICK_ACCOUNT = 1000;
+    static final int REQUEST_CODE_RECOVER_FROM_PLAY_SERVICES_ERROR = 1001;
+    String SCOPE = "oauth2:https://www.googleapis.com/auth/userinfo.profile";
+    String mEmail; // Received from newChooseAccountIntent(); passed to getToken()
+    String dbEmail;
 
-    // Right drawer elements
-    List<Vehicle> rightList = new ArrayList<Vehicle>();
-    ListView rightListView;
-    CustomAdapterRight rightAdapter;
-    ImageView btn_add_vehicle;
-    ImageView delete;
-    ImageView edit;
-
-    ProgressDialog dialog;
-    ServiceGetVehicle serviceGetVehicle;
-    String urlVehicleDisplay = "http://mysafe.cloudapp.net/mysafe/rest/owners/id/1/vehicles";
-    //String urlVehicleDisplay = "http://mysafe.cloudapp.net/mysafe/rest/vehicles";
-    String urlVehicleCreate = "http://mysafe.cloudapp.net/mysafe/rest/vehicles/create?owner_id=1";
-    String urlVehicleDelete="http://mysafe.cloudapp.net/mysafe/rest/vehicles/delete/";
-    String postParam;
-
-    int position = 0;
-    int savedItemPos = 0;
-    // Left drawer elements
-    List<Coordinate> leftList = new ArrayList<Coordinate>();
-    ListView leftListView;
-    CustomAdapterLeft leftAdapter;
-
-    ServiceGetCoordinate serviceGetCoordinate;
-    String urlCooridnateDisplay="http://mysafe.cloudapp.net/mysafe/rest/coordinates/imei/";
-
-
-
-
-
+    SQLiteDatabase db;
+    ServiceGetOwner serviceGetOwner;
+    ServiceCreateOwner serviceCreateOwner;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setContentView(R.layout.activity_login);
 
+        db = openOrCreateDatabase("MysafeAppDB", Context.MODE_PRIVATE, null);
+        db.execSQL("CREATE TABLE IF NOT EXISTS owners(id INT, first_name VARCHAR,last_name VARCHAR,email VARCHAR, passwd VARCHAR);");
 
-        rightListView = (ListView)findViewById(R.id.rightListView);
-        rightListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+       // dbEmail = getEmailFromInternalDb();
+        //dbEmail = "rahghul.madivanane@gmail.com";
+        if(dbEmail == null) {
+            pickUserAccount();
+        }
+        else {
+            mEmail = dbEmail;
+            Log.d("mEmail", dbEmail);
+            getUsername(dbEmail);
+        }
+
+        buttonLogin = (Button) findViewById(R.id.btn_login);
+        buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Object o = rightListView.getItemAtPosition(position);
-                callServiceCoordinateDisplay(((Vehicle) o).getImei());
-                rightAdapter.notifyDataSetChanged();
-                parent.getChildAt(position).setBackgroundColor(Color.parseColor("#678FBA"));
-
-                if (savedItemPos != position){
-                    parent.getChildAt(savedItemPos).setBackgroundColor(Color.TRANSPARENT);
-                }
-
-                savedItemPos = position;
+            public void onClick(View v) {
+                pickUserAccount();
             }
         });
-        leftListView = (ListView)findViewById(R.id.leftListView);
-
-        dialog = new ProgressDialog(this);
-
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close){
-            @Override
-            public void onDrawerClosed(View drawerView) {
-                super.onDrawerClosed(drawerView);
-                for(int i=0; i< rightList.size();i++){
-                    hideDeleteEditButton(i);
-                }
-            }
-
-            @Override
-            public void onDrawerOpened(View drawerView) {
-                super.onDrawerOpened(drawerView);
-
-            }
-
-            @Override
-            public void onDrawerSlide(View drawerView, float slideOffset) {
-                super.onDrawerSlide(drawerView, slideOffset);
-                for(int i=0; i< rightList.size();i++){
-                    hideDeleteEditButton(i);
-                }
-            }
-        };
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        //MAJ des services
-        callServiceVehicleDisplay();
-        //showMessage("rightList",rightList.get(1).toString());
-        //callServiceCoordinateDisplay(rightList.get(1).getImei());
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Refresh last localisation.", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
-
-
-        //NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        //navigationView.setNavigationItemSelectedListener(this);
-
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
-        mContext = this;
-        btn_add_vehicle = (ImageView)findViewById(R.id.btn_show_form);
-        btn_add_vehicle.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View vw) {
-                startActivityForResult(new Intent(mContext, FormAddVehicleActivity.class), 2);// Activity is started with requestCode 2
-
-            }
-        });
-
-
-
-        rightListView.setOnTouchListener(new OnSwipeTouchListener(this, rightListView) {
-            /*   @Override
-               public void onSwipeRight(int pos) {
-                   showDeleteEditButton(pos);
-               }*/
-            @Override
-            public void onSwipeLeft(int pos) {
-                showDeleteEditButton(pos);
-            }
-        });
-
-
-
     }
 
 
 
-
-
-
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
-
-        return super.dispatchTouchEvent(ev);
+    private void pickUserAccount() {
+        String[] accountTypes = new String[]{"com.google"};
+        Intent intent = AccountPicker.newChooseAccountIntent(null, null,
+                accountTypes, false, null, null, null, null);
+        startActivityForResult(intent, REQUEST_CODE_PICK_ACCOUNT);
     }
 
-    private boolean showDeleteEditButton(int pos) {
-        hideDeleteEditButton(position);
-        position = pos;
-        View child = rightListView.getChildAt(pos - rightListView.getFirstVisiblePosition());
-        if (child != null) {
-            delete = (ImageView) child.findViewById(R.id.delete);
-            edit = (ImageView) child.findViewById(R.id.edit);
-            if (delete != null) {
-                if (delete.getVisibility() == View.INVISIBLE) {
-                    Animation animationLeft = AnimationUtils.loadAnimation(this,R.anim.slide_out_left);
-                    delete.startAnimation(animationLeft);
-                    delete.setVisibility(View.VISIBLE);
-                    edit.setAnimation(animationLeft);
-                    edit.setVisibility(View.VISIBLE);
-                    delete.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            callServiceVehicleDelete(rightList.get(position).getImei().toString());
-                        }
-                    });
-                    edit.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-
-                            Intent intent  = new Intent(mContext,FormAddVehicleActivity.class);
-                            intent.putExtra("old_imei", rightList.get(position).getImei().toString());
-                            intent.putExtra("old_brand", rightList.get(position).getBrand().toString());
-                            intent.putExtra("old_color", rightList.get(position).getColor().toString());
-                            startActivityForResult(intent, 3);
-
-                        }
-                    });
-
-                } else {
-                    Animation animationRight = AnimationUtils.loadAnimation(this,R.anim.slide_in_right);
-                    delete.startAnimation(animationRight);
-                    delete.setVisibility(View.INVISIBLE);
-                    edit.startAnimation(animationRight);
-                    edit.setVisibility(View.INVISIBLE);
-
-                }
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_CODE_PICK_ACCOUNT) {
+            // Receiving a result from the AccountPicker
+            if (resultCode == RESULT_OK) {
+                mEmail = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+                // With the account name acquired, go get the auth token
+                getUsername(mEmail);
+            } else if (resultCode == RESULT_CANCELED) {
+                // The account picker dialog closed without selecting an account.
+                // Notify users that they must pick an account to proceed.
+                //  Toast.makeText(this, R.string.pick_account, Toast.LENGTH_SHORT).show();
             }
-            return true;
+        } else if ((
+                requestCode == REQUEST_CODE_RECOVER_FROM_PLAY_SERVICES_ERROR)
+                && resultCode == RESULT_OK) {
+            // Receiving a result that follows a GoogleAuthException, try auth again
+            getUsername(mEmail);
         }
-        return false;
-    }
-
-
-    private boolean hideDeleteEditButton(int pos) {
-        position = pos;
-        View child = rightListView.getChildAt(pos - rightListView.getFirstVisiblePosition());
-        if (child != null) {
-
-            delete = (ImageView) child.findViewById(R.id.delete);
-            edit = (ImageView) child.findViewById(R.id.edit);
-            if (delete != null && edit != null) {
-                //Animation animationRight = AnimationUtils.loadAnimation(this,R.anim.slide_in_right);
-               // delete.startAnimation(animationRight);
-                delete.setVisibility(View.INVISIBLE);
-               // edit.startAnimation(animationRight);
-                edit.setVisibility(View.INVISIBLE);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    // Call Back method  to get the Message form other Activity    override the method
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
-        // TODO Auto-generated method stub
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 2 && resultCode == RESULT_OK) {
-            if(data.hasExtra("postParamCreateVehicle")) {
-                postParam = data.getExtras().getString("postParamCreateVehicle");
-                callServiceVehicleCreate();
-            }
-        }
-        if(requestCode == 3 && resultCode == RESULT_OK){
-            if(data.hasExtra("postParamCreateVehicle") && data.hasExtra("imei")){
-                callServiceVehicleDelete(data.getExtras().getString("imei"));
-                postParam = data.getExtras().getString("postParamCreateVehicle");
-                callServiceVehicleCreate();
-            }
-        }
-
-    }
-
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            drawer.openDrawer(rightListView);
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
     }
 
     /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
+     * Attempts to retrieve the username.
+     * If the account is not yet known, invoke the picker. Once the account is known,
+     * start an instance of the AsyncTask to get the auth token and do work with it.
      */
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    private void getUsername(String email) {
+        if (email == null) {
+            pickUserAccount();
+        } else {
+            serviceGetOwner = new ServiceGetOwner(this, email);
+            serviceGetOwner.refreshOwner();
+        }
     }
 
-
-
-    public void showMessage(String title,String message)
-    {
-        AlertDialog.Builder builder=new AlertDialog.Builder(this);
+    public void showMessage(String title, String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(true);
         builder.setTitle(title);
         builder.setMessage(message);
@@ -385,31 +120,37 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-
     @Override
     public void serviceSuccess(Object object, int id_srv) {
-        if(id_srv == 2) {
-            //Vehicle display
-            rightList.clear();
-            rightList = (List<Vehicle>) object;
-            rightAdapter = new CustomAdapterRight(this, rightList);
-            rightListView.setAdapter(rightAdapter);
-            callServiceCoordinateDisplay(rightList.get(0).getImei());
-        }
-        if(id_srv == 3){
-            //showMessage("Result", "Vehicle added.");
-        }
-        if(id_srv == 4){
-            //showMessage("Result","Vehicle deleted.");
-        }
+        if (id_srv == 0) {
+            owner = (Owner)object;
+            if(owner == null){
+                serviceCreateOwner = new ServiceCreateOwner(MainActivity.this, mEmail, SCOPE, this);
+                serviceCreateOwner.createOwner();
+                //new ServiceCreateOwner(MainActivity.this, mEmail, SCOPE, this).execute();
+            }
+            else{
+                db.execSQL("DROP TABLE IF EXISTS owners");
+                db.execSQL("CREATE TABLE IF NOT EXISTS owners(id INT, first_name VARCHAR,last_name VARCHAR,email VARCHAR, passwd VARCHAR);");
+                //Insert into db to transfer the object to another activity
+                db.execSQL("INSERT INTO owners VALUES('" + owner.getId()+ "','" + owner.getFirst_name() + "','" + owner.getLast_name() +
+                        "','" + owner.getEmail() + "','" + owner.getPasswd() + "');");
 
-        if(id_srv == 5){
-            // Coordinate display
-            leftList.clear();
-            leftList = (List<Coordinate>) object;
-
-            leftAdapter = new CustomAdapterLeft(this, leftList);
-            leftListView.setAdapter(leftAdapter);
+                Intent myIntent = new Intent(MainActivity.this, ContentActivity.class);
+                MainActivity.this.startActivity(myIntent);
+            }
+        }
+        if (id_srv == 1) {
+            Boolean accessLogin = (Boolean) object;
+            if (accessLogin == true) {
+                //viewDBApp();
+                serviceGetOwner = new ServiceGetOwner(this, mEmail);
+                serviceGetOwner.refreshOwner();
+                //new ServiceGetOwner(this, mEmail).execute();
+            }
+            else{
+                showMessage("Login Result","Login failed, please retry or contact MySafe customer care service to contact@mysafeauto.fr");
+            }
         }
     }
 
@@ -418,27 +159,79 @@ public class MainActivity extends AppCompatActivity
         Toast.makeText(this, exception.getMessage(), Toast.LENGTH_LONG).show();
     }
 
-
-    public void callServiceVehicleDisplay(){
-        serviceGetVehicle = new ServiceGetVehicle(this, dialog, "display");
-        serviceGetVehicle.refreshLocalisation(urlVehicleDisplay, null);
+    /**
+     * This method is a hook for background threads and async tasks that need to
+     * provide the user a response UI when an exception occurs.
+     */
+    public void handleException(final Exception e) {
+        // Because this call comes from the AsyncTask, we must ensure that the following
+        // code instead executes on the UI thread.
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (e instanceof GooglePlayServicesAvailabilityException) {
+                    // The Google Play services APK is old, disabled, or not present.
+                    // Show a dialog created by Google Play services that allows
+                    // the user to update the APK
+                    int statusCode = ((GooglePlayServicesAvailabilityException) e)
+                            .getConnectionStatusCode();
+                    Dialog dialog = GooglePlayServicesUtil.getErrorDialog(statusCode,
+                            MainActivity.this,
+                            REQUEST_CODE_RECOVER_FROM_PLAY_SERVICES_ERROR);
+                    dialog.show();
+                } else if (e instanceof UserRecoverableAuthException) {
+                    // Unable to authenticate, such as when the user has not yet granted
+                    // the app access to the account, but the user can fix this.
+                    // Forward the user to an activity in Google Play services.
+                    Intent intent = ((UserRecoverableAuthException) e).getIntent();
+                    startActivityForResult(intent,
+                            REQUEST_CODE_RECOVER_FROM_PLAY_SERVICES_ERROR);
+                }
+            }
+        });
     }
 
-    public void callServiceVehicleCreate(){
-        serviceGetVehicle = new ServiceGetVehicle(this, dialog, "create");
-        serviceGetVehicle.refreshLocalisation(urlVehicleCreate, postParam);
-        callServiceVehicleDisplay();
+
+    public void viewDBApp(){
+        // Retrieving all records
+        Cursor c=db.rawQuery("SELECT * FROM owners", null);
+        // Checking if no records found
+        if(c.getCount()==0)
+        {
+            showMessage("Error", "No records found but table exist");
+            return;
+        }
+        // Appending records to a string buffer
+        StringBuffer buffer=new StringBuffer();
+        while(c.moveToNext())
+        {
+            buffer.append("Id: "+c.getString(0)+"\n");
+            buffer.append("First_name: "+c.getString(1)+"\n");
+            buffer.append("Last_name: "+c.getString(2)+"\n");
+            buffer.append("Email: "+c.getString(4)+"\n");
+            buffer.append("Passwd: "+c.getString(3)+"\n\n");
+        }
+
+        // Displaying all records
+        showMessage("Owner Table", buffer.toString());
 
     }
 
-    public void callServiceVehicleDelete(String imei){
-        serviceGetVehicle = new ServiceGetVehicle(this, dialog, "delete");
-        serviceGetVehicle.refreshLocalisation(urlVehicleDelete + imei, null);
-        callServiceVehicleDisplay();
-    }
-
-    public void callServiceCoordinateDisplay(String imei){
-        serviceGetCoordinate = new ServiceGetCoordinate(this, dialog);
-        serviceGetCoordinate.refreshLocalisation(urlCooridnateDisplay+imei);
+    public String getEmailFromInternalDb(){
+        // Retrieving all records
+        String email = null;
+        Cursor c=db.rawQuery("SELECT * FROM owners", null);
+        // Checking if no records found
+        if(c.getCount()==0)
+        {
+            showMessage("Error", "No records found but table exist");
+            return null;
+        }
+        // Appending records to a string buffer
+        while(c.moveToNext())
+        {
+            email = c.getString(4);
+        }
+        return email;
     }
 }

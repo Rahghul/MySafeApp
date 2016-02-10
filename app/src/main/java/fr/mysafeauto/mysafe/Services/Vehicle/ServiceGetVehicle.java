@@ -58,11 +58,13 @@ public class ServiceGetVehicle {
                             return findAllItems(params[0]);
                         case "create":
                             // Vehicle Create
-                            WebServiceUtil.requestWebService2(params[0], params[1], "POST");
+                            //WebServiceUtil.requestWebService2(params[0], params[1], "POST");
+                            WebServiceUtil.requestWebServicePOST(params[0], params[1]);
                             return null;
                         case "delete":
                             //Vehicle Delete
-                            WebServiceUtil.requestWebService2(params[0],null, "DELETE");
+                           // WebServiceUtil.requestWebService2(params[0],null, "DELETE");
+                            WebServiceUtil.requestWebServiceDELETE(params[0]);
                             return null;
                         case "edit":
                             //Vehicle Edit
@@ -116,14 +118,14 @@ public class ServiceGetVehicle {
     }
 
     public List<Vehicle> findAllItems(String endpoint) throws JSONException {
-        String s = null;
-        s = WebServiceUtil.requestWebService2(endpoint,null, "GET");
-
+        String s = WebServiceUtil.requestWebServiceGET(endpoint);
+        if(s==null){
+            return null;
+        }
 
         List<Vehicle> foundVehicles = new ArrayList<Vehicle>();
 
-        JSONArray data = null;
-            data = new JSONArray(s);
+        JSONArray  data = new JSONArray(s);
 
         for(int i =0; i<data.length(); i++){
             JSONObject p = null;

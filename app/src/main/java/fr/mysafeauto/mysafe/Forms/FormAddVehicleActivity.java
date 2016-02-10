@@ -50,6 +50,7 @@ public class FormAddVehicleActivity extends AppCompatActivity {
         final String old_imei  = intent.getStringExtra("old_imei");
         String old_brand  = intent.getStringExtra("old_brand");
         String old_color = intent.getStringExtra("old_color");
+
         EdTxt_IMEI.setText(old_imei);
         EdTxt_Brand.setText(old_brand);
         EdTxt_Color.setText(old_color);

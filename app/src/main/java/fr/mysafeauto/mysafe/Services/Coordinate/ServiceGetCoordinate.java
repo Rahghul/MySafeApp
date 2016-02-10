@@ -70,16 +70,16 @@ public class ServiceGetCoordinate {
     }
 
     public List<Coordinate> findAllItems(String endpoint) throws JSONException {
-        String s = null;
-        s = WebServiceUtil.requestWebService2(endpoint,null, "GET");
+        String s = WebServiceUtil.requestWebServiceGET(endpoint);
 
-
+        if(s == null){
+            return null;
+        }
         List<Coordinate> foundCoordinates = new ArrayList<Coordinate>();
 
         JSONArray data = new JSONArray(s);
         for(int i =0; i<data.length(); i++){
-            JSONObject p = null;
-            p = data.getJSONObject(i);
+            JSONObject p = data.getJSONObject(i);
 
             foundCoordinates.add(
                     new Coordinate(p.getString("id"),

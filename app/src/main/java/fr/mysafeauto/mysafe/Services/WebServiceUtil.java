@@ -67,7 +67,7 @@ public class WebServiceUtil {
 
     }
 
-    public static String requestWebService2(String url, String postParameters, String method) {
+    /*public static String requestWebService2(String url, String postParameters, String method) {
         if (Log.isLoggable(LOGGER_TAG, Log.INFO)) {
             Log.i(LOGGER_TAG, "Requesting service: " + url);
         }
@@ -93,9 +93,16 @@ public class WebServiceUtil {
                 urlConnection.setRequestProperty("Content-Type","application/x-www-form-urlencoded");
 
                 //send the POST out
-                PrintWriter out = new PrintWriter(urlConnection.getOutputStream());
-                out.print(postParameters);
-                out.close();
+                PrintWriter out = null;
+                try {
+                    out = new PrintWriter(urlConnection.getOutputStream());
+                    out.print(postParameters);
+                }catch (Exception e){
+                    Log.d(LOGGER_TAG,e.getMessage());
+                }finally {
+                    if(out != null)
+                        out.close();
+                }
             }
             if(method.equals("DELETE")){
                 urlConnection.setRequestProperty("Content-Type","application/x-www-form-urlencoded");
@@ -107,6 +114,7 @@ public class WebServiceUtil {
                 // throw some exception
                 Log.d("Http status ERROR", ""+statusCode);
             }
+            Log.d("Http status", ""+statusCode);
 
             // read output (only for GET)
             if (postParameters != null && (method == "POST" || method == "DELETE")) {
@@ -140,6 +148,146 @@ public class WebServiceUtil {
 
         return null;
     }
+*/
+    public static int requestWebServicePOST(String url, String postParameters) {
+        if (Log.isLoggable(LOGGER_TAG, Log.INFO)) {
+            Log.i(LOGGER_TAG, "Requesting service: " + url);
+        }
+
+        HttpURLConnection urlConnection = null;
+        try {
+            // create connection
+            URL urlToRequest = new URL(url);
+            urlConnection = (HttpURLConnection) urlToRequest.openConnection();
+            urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
+            urlConnection.setReadTimeout(DATARETRIEVAL_TIMEOUT);
+
+            // handle POST parameters
+
+            if (Log.isLoggable(LOGGER_TAG, Log.INFO)) {
+                Log.i(LOGGER_TAG, "POST parameters: " + postParameters);
+            }
+
+            urlConnection.setDoOutput(true);
+            urlConnection.setRequestMethod("POST");
+            urlConnection.setFixedLengthStreamingMode(postParameters.getBytes().length);
+            urlConnection.setRequestProperty("Content-Type","application/x-www-form-urlencoded");
+
+            //send the POST out
+            PrintWriter out = new PrintWriter(urlConnection.getOutputStream());
+            out.print(postParameters);
+            out.close();
+
+
+            // handle issues
+            int statusCode = urlConnection.getResponseCode();
+            if (statusCode != HttpURLConnection.HTTP_OK) {
+                // throw some exception
+                Log.d("Http status ERROR", ""+statusCode);
+            }
+            return statusCode;
+
+
+        } catch (Exception e) {
+            // handle invalid URL
+        }  finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
+        }
+
+        return 0;
+    }
+
+    public static int requestWebServiceDELETE(String url) {
+        if (Log.isLoggable(LOGGER_TAG, Log.INFO)) {
+            Log.i(LOGGER_TAG, "Requesting service: " + url);
+        }
+
+        HttpURLConnection urlConnection = null;
+        try {
+            // create connection
+            URL urlToRequest = new URL(url);
+            urlConnection = (HttpURLConnection) urlToRequest.openConnection();
+            urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
+            urlConnection.setReadTimeout(DATARETRIEVAL_TIMEOUT);
+
+            urlConnection.setRequestProperty("Content-Type","application/x-www-form-urlencoded");
+            urlConnection.setRequestMethod("DELETE");
+
+            // handle issues
+            int statusCode = urlConnection.getResponseCode();
+            if (statusCode != HttpURLConnection.HTTP_OK) {
+                // throw some exception
+                Log.d("Http status ERROR", ""+statusCode);
+            }
+            Log.d("Http status", "" + statusCode);
+
+            // read output (only for GET)
+            return statusCode;
+
+        } catch (Exception e) {
+            // handle invalid URL
+        }  finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
+        }
+
+        return 0;
+    }
+
+    public static String requestWebServiceGET(String url) {
+        if (Log.isLoggable(LOGGER_TAG, Log.INFO)) {
+            Log.i(LOGGER_TAG, "Requesting service: " + url);
+        }
+
+        HttpURLConnection urlConnection = null;
+        try {
+            // create connection
+            URL urlToRequest = new URL(url);
+            urlConnection = (HttpURLConnection) urlToRequest.openConnection();
+            urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
+            urlConnection.setReadTimeout(DATARETRIEVAL_TIMEOUT);
+
+
+
+            // handle issues
+            int statusCode = urlConnection.getResponseCode();
+            if (statusCode != HttpURLConnection.HTTP_OK) {
+                // throw some exception
+                Log.d("Http status ERROR", ""+statusCode);
+                return null;
+
+            }
+
+            Log.d("Http status", ""+statusCode);
+
+            // read output (only for GET)
+            // create JSON object from content
+            InputStream in = urlConnection.getInputStream();
+
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
+            StringBuilder result = new StringBuilder();
+            String line;
+
+            while ((line = bufferedReader.readLine()) != null) {
+                result.append(line);
+            }
+            return result.toString();
+
+        } catch (Exception e) {
+            // handle invalid URL
+        }  finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
+        }
+
+        return null;
+    }
+
+
 
 
 }
