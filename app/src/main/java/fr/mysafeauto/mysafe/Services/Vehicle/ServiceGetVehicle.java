@@ -36,7 +36,7 @@ public class ServiceGetVehicle {
         this.service = service;
     }
 
-    public void refreshLocalisation(final String endpoint, final String postParam){
+    public void refreshLocalisation(final String str1, final String str2, final String str3){
 
         new AsyncTask<String, Void, List<Vehicle>>() {
 
@@ -56,16 +56,29 @@ public class ServiceGetVehicle {
                             return findAllItems(params[0]);
                         case "create":
                             // Vehicle Create
-                            //WebServiceUtil.requestWebService2(params[0], params[1], "POST");
                             WebServiceUtil.requestWebServicePOST(params[0], params[1]);
                             return null;
                         case "delete":
                             //Vehicle Delete
-                           // WebServiceUtil.requestWebService2(params[0],null, "DELETE");
                             WebServiceUtil.requestWebServiceDELETE(params[0]);
                             return null;
-                        case "edit":
+                        case "update":
                             //Vehicle Edit
+                            String urlVehicleUpdate="http://mysafe.cloudapp.net/mysafe/rest/vehicles/update/";
+                            String urlVehicleGetJSON="http://mysafe.cloudapp.net/mysafe/rest/vehicles/";
+
+                            String jsonStr = WebServiceUtil.requestWebServiceGET(urlVehicleGetJSON+params[0]);
+                            String jsonStrModify;
+                            try {
+                                JSONObject json = new JSONObject(jsonStr);
+                                json.put("brand", params[1]);
+                                json.put("color", params[2]);
+                                jsonStrModify = json.toString();
+                                WebServiceUtil.requestWebServicePUT(urlVehicleUpdate+params[0], jsonStrModify);
+                            } catch (JSONException e) {
+                                error = e;
+                            }
+
                             return null;
                         default:
                             throw (new Exception("Unknown Service : Vehicle"));
@@ -83,10 +96,14 @@ public class ServiceGetVehicle {
                     dialog.dismiss();
                 }
                 try {
+                    if(error !=null){
+                        callBack.serviceFailure(error);
+                        return;
+                    }
                     switch (service) {
                         case "display":
                             // Vehicle Display to ListView
-                            if(vehicles == null && error !=null){
+                            if(vehicles == null){
                                 callBack.serviceFailure(error);
                                 return;
                             }
@@ -100,7 +117,8 @@ public class ServiceGetVehicle {
                             //Vehicle Delete
                             callBack.serviceSuccess("Success", 4);
                             return;
-                        case "edit":
+                        case "update":
+                            callBack.serviceSuccess("Success", 5);
                             //Vehicle Edit
                             return;
                         default:
@@ -112,7 +130,7 @@ public class ServiceGetVehicle {
                 }
 
             }
-        }.execute(endpoint, postParam);
+        }.execute(str1, str2, str3);
     }
 
     public List<Vehicle> findAllItems(String endpoint) throws JSONException {

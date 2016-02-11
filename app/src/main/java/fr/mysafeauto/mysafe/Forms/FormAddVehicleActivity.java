@@ -10,6 +10,7 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputFilter;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -50,6 +51,10 @@ public class FormAddVehicleActivity extends AppCompatActivity {
         final String old_imei  = intent.getStringExtra("old_imei");
         String old_brand  = intent.getStringExtra("old_brand");
         String old_color = intent.getStringExtra("old_color");
+        if(old_imei==null)
+            EdTxt_IMEI.setEnabled(true);
+        else
+            EdTxt_IMEI.setEnabled(false);
 
         EdTxt_IMEI.setText(old_imei);
         EdTxt_Brand.setText(old_brand);
@@ -102,7 +107,10 @@ public class FormAddVehicleActivity extends AppCompatActivity {
 
                     Intent intent = new Intent();
                     intent.putExtra("postParamCreateVehicle", postParam);
+                    intent.putExtra("brand",EdTxt_Brand.getText().toString());
+                    intent.putExtra("color",EdTxt_Color.getText().toString());
                     intent.putExtra("imei", old_imei);
+
                     setResult(RESULT_OK, intent);
 
                     finish();

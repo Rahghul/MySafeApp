@@ -60,7 +60,7 @@ public class ServiceGetCoordinate {
                         callBack.serviceFailure(error);
                         return;
                     }
-                    callBack.serviceSuccess(coordinates, 5);
+                    callBack.serviceSuccess(coordinates, 6);
                 }
                 catch (Exception e) {
                         error = e;

@@ -48,6 +48,7 @@ import fr.mysafeauto.mysafe.Services.Vehicle.CustomAdapterVehicle;
 import fr.mysafeauto.mysafe.Services.Vehicle.OnSwipeTouchListener;
 import fr.mysafeauto.mysafe.Services.Vehicle.ServiceGetVehicle;
 import fr.mysafeauto.mysafe.Services.Vehicle.Vehicle;
+import fr.mysafeauto.mysafe.Services.WebServiceUtil;
 
 /**
  * Created by Rahghul on 10/02/2016.
@@ -74,6 +75,7 @@ public class ContentActivity extends AppCompatActivity
     String urlVehicleDisplay;
     String urlVehicleCreate;
     String urlVehicleDelete="http://mysafe.cloudapp.net/mysafe/rest/vehicles/delete/";
+
     String postParam;
 
     int position = 0;
@@ -308,10 +310,8 @@ public class ContentActivity extends AppCompatActivity
             }
         }
         if(requestCode == 3 && resultCode == RESULT_OK){
-            if(data.hasExtra("postParamCreateVehicle") && data.hasExtra("imei")){
-                callServiceVehicleDelete(data.getExtras().getString("imei"));
-                postParam = data.getExtras().getString("postParamCreateVehicle");
-                callServiceVehicleCreate(postParam);
+            if(data.hasExtra("imei") && data.hasExtra("brand") && data.hasExtra("color")){
+                callServiceVehicleUpdate(data.getExtras().getString("imei"),data.getExtras().getString("brand"),data.getExtras().getString("color"));
             }
         }
 
@@ -413,6 +413,9 @@ public class ContentActivity extends AppCompatActivity
         }
 
         if(id_srv == 5){
+            //showMessage("Result", "Vehicle updated");
+        }
+        if(id_srv == 6){
             coordinateList.clear();
             if((List<Coordinate>) object != null){
                 // Coordinate display
@@ -430,19 +433,25 @@ public class ContentActivity extends AppCompatActivity
 
     public void callServiceVehicleDisplay(){
         serviceGetVehicle = new ServiceGetVehicle(this, dialog, "display");
-        serviceGetVehicle.refreshLocalisation(urlVehicleDisplay, null);
+        serviceGetVehicle.refreshLocalisation(urlVehicleDisplay, null, null);
     }
 
     public void callServiceVehicleCreate(String postParamCreate){
         serviceGetVehicle = new ServiceGetVehicle(this, dialog, "create");
-        serviceGetVehicle.refreshLocalisation(urlVehicleCreate, postParamCreate);
+        serviceGetVehicle.refreshLocalisation(urlVehicleCreate, postParamCreate, null);
         callServiceVehicleDisplay();
 
     }
 
     public void callServiceVehicleDelete(String imei){
         serviceGetVehicle = new ServiceGetVehicle(this, dialog, "delete");
-        serviceGetVehicle.refreshLocalisation(urlVehicleDelete + imei, null);
+        serviceGetVehicle.refreshLocalisation(urlVehicleDelete + imei, null, null);
+        callServiceVehicleDisplay();
+    }
+
+    public void callServiceVehicleUpdate(String imei, String brand, String color){
+        serviceGetVehicle = new ServiceGetVehicle(this, dialog, "update");
+        serviceGetVehicle.refreshLocalisation(imei, brand, color);
         callServiceVehicleDisplay();
     }
 
@@ -450,6 +459,8 @@ public class ContentActivity extends AppCompatActivity
         serviceGetCoordinate = new ServiceGetCoordinate(this, dialog);
         serviceGetCoordinate.refreshLocalisation(urlCooridnateDisplay + imei);
     }
+
+
 
     public void viewDBApp(){
         // Retrieving all records

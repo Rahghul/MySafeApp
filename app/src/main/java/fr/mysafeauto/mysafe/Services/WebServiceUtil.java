@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -287,6 +288,59 @@ public class WebServiceUtil {
         return null;
     }
 
+
+    public static int requestWebServicePUT(String url, String jSonParam) {
+        if (Log.isLoggable(LOGGER_TAG, Log.INFO)) {
+            Log.i(LOGGER_TAG, "Requesting service: " + url);
+        }
+
+        HttpURLConnection urlConnection = null;
+        try {
+            // create connection
+            URL urlToRequest = new URL(url);
+            urlConnection = (HttpURLConnection) urlToRequest.openConnection();
+            urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
+            urlConnection.setReadTimeout(DATARETRIEVAL_TIMEOUT);
+
+            // handle POST parameters
+
+            if (Log.isLoggable(LOGGER_TAG, Log.INFO)) {
+                Log.i(LOGGER_TAG, "jSon parameters: " + jSonParam);
+            }
+            urlConnection.setDoOutput(true);
+            urlConnection.setRequestMethod("PUT");
+            urlConnection.setFixedLengthStreamingMode(jSonParam.getBytes().length);
+            urlConnection.setRequestProperty("Content-Type", "application/json");
+            urlConnection.setRequestProperty("Accept", "application/json");
+
+
+            OutputStreamWriter osw = new OutputStreamWriter(urlConnection.getOutputStream());
+            osw.write(String.format(jSonParam));
+            osw.flush();
+            osw.close();
+
+
+
+            // handle issues
+            int statusCode = urlConnection.getResponseCode();
+            if (statusCode != HttpURLConnection.HTTP_OK) {
+                // throw some exception
+                Log.d("Http status ERROR", ""+statusCode);
+            }
+            Log.d("Http status PUT", ""+statusCode);
+            return statusCode;
+
+
+        } catch (Exception e) {
+            // handle invalid URL
+        }  finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
+        }
+
+        return 0;
+    }
 
 
 
