@@ -10,18 +10,17 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import fr.mysafeauto.mysafe.R;
 
-/**
- * Created by Rahghul on 08/02/2016.
- */
+
 public class CustomAdapterCoordinate extends BaseAdapter {
 
     Context context;
     LayoutInflater layoutInflater;
-    List<Coordinate> coordinateList;
+    List<Coordinate> coordinateList = new ArrayList<>();
 
     public CustomAdapterCoordinate(Context context, List<Coordinate> coordinateList) {
         super();
@@ -66,10 +65,10 @@ public class CustomAdapterCoordinate extends BaseAdapter {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        holder.textViewLat.setText(coordinateList.get(position).getLatitude().toString());
-        holder.textViewLon.setText(coordinateList.get(position).getLongitude().toString());
-        holder.textViewSpeed.setText(coordinateList.get(position).getSpeed().toString());
-        holder.textViewBatt.setText(coordinateList.get(position).getBattery().toString());
+        holder.textViewLat.setText(coordinateList.get(position).getLatitude());
+        holder.textViewLon.setText(coordinateList.get(position).getLongitude());
+        holder.textViewSpeed.setText(coordinateList.get(position).getSpeed());
+        holder.textViewBatt.setText(coordinateList.get(position).getBattery());
         SimpleDateFormat sfd = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         holder.textViewDate.setText(sfd.format(coordinateList.get(position).getDateTime()));
 

@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -29,6 +30,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
+import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -42,6 +44,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,9 +61,7 @@ import fr.mysafeauto.mysafe.Services.Vehicle.OnSwipeTouchListener;
 import fr.mysafeauto.mysafe.Services.Vehicle.ServiceGetVehicle;
 import fr.mysafeauto.mysafe.Services.Vehicle.Vehicle;
 
-/**
- * Created by Rahghul on 10/02/2016.
- */
+
 public class ContentActivity extends AppCompatActivity
         implements OnMapReadyCallback, ServiceCallBack, GoogleMap.InfoWindowAdapter, GoogleMap.OnInfoWindowClickListener {
 
@@ -71,7 +72,7 @@ public class ContentActivity extends AppCompatActivity
     Context mContext;
 
     // Right drawer elements
-    List<Vehicle> vehicleList = new ArrayList<Vehicle>();
+    List<Vehicle> vehicleList = new ArrayList<>();
     ListView vehicleListView;
     CustomAdapterVehicle vehicleAdapter;
     ImageView btn_add_vehicle;
@@ -91,7 +92,7 @@ public class ContentActivity extends AppCompatActivity
     //int savedItemPosCoord = 0;
 
     // Left drawer elements
-    List<Coordinate> coordinateList = new ArrayList<Coordinate>();
+    List<Coordinate> coordinateList = new ArrayList<>();
     ListView coordinateListView;
     CustomAdapterCoordinate coordinateAdapter;
 
@@ -100,6 +101,8 @@ public class ContentActivity extends AppCompatActivity
 
     Owner owner;
     SQLiteDatabase db;
+
+    //header listview Info
     TextView tv_owner_firstname;
     TextView tv_owner_lastname;
     TextView tv_owner_email;
@@ -107,10 +110,14 @@ public class ContentActivity extends AppCompatActivity
     TextView tv_vehicle_brand;
     TextView tv_vehicle_color;
 
+    // MAps marker
     LatLng coord_GPS;
-    View markerInfoWindowChild;
     String content_address;
     TextView tv_address;
+
+    //Float Image logout
+    ImageView btn_logout;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -142,9 +149,9 @@ public class ContentActivity extends AppCompatActivity
         tv_vehicle_color.setVisibility(View.INVISIBLE);
         tv_vehicle_brand.setVisibility(View.INVISIBLE);
 
-        tv_owner_firstname.setText(owner.getFirst_name().toString());
-        tv_owner_lastname.setText(owner.getLast_name().toString());
-        tv_owner_email.setText(owner.getEmail().toString());
+        tv_owner_firstname.setText(owner.getFirst_name());
+        tv_owner_lastname.setText(owner.getLast_name());
+        tv_owner_email.setText(owner.getEmail());
 
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
@@ -174,25 +181,27 @@ public class ContentActivity extends AppCompatActivity
             }
         });
         coordinateListView = (ListView)findViewById(R.id.coordListView);
+
         coordinateAdapter = new CustomAdapterCoordinate(this, coordinateList);
         coordinateListView.setAdapter(coordinateAdapter);
+
         //MAJ des services
         callServiceVehicleDisplay();
 
 
         coordinateListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 Object o = coordinateListView.getItemAtPosition(position);
 
+                // parent.getChildAt(position).setBackgroundColor(Color.parseColor("#678FBA"));
+                // coordinateListView.setItemChecked(position, true);
                 double tmp_lat = Double.parseDouble(((Coordinate) o).getLatitude());
                 double tmp_lon = Double.parseDouble(((Coordinate) o).getLongitude());
                 putMarker(tmp_lat, tmp_lon);
 
-                View child = coordinateListView.getChildAt(position - coordinateListView.getFirstVisiblePosition());
-                markerInfoWindowChild = child;
-                //   child.setBackgroundColor(Color.parseColor("#678FBA"));
                 // if (savedItemPosCoord != position) {
                 //   parent.getChildAt(savedItemPosCoord).setBackgroundColor(Color.TRANSPARENT);
                 // }
@@ -231,19 +240,32 @@ public class ContentActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        btn_logout = (ImageView)findViewById(R.id.btn_logout);
+        btn_logout.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Refresh last localisation.", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+            public void onClick(View v) {
+                new AlertDialog.Builder(mContext)
+                        .setTitle("User disconnect")
+                        .setMessage("Are you sure you want to disconnect ?")
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                //Delete dattabase about the user
+                                File file = new File("data/data/fr.mysafeauto.mysafe/databases/MysafeAppDB");
+                                file.delete();
+                                //Kill app
+                                System.exit(1);
+                            }
+                        })
+                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                // do nothing
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+
             }
         });
-
-
-
 
 
         btn_add_vehicle = (ImageView)findViewById(R.id.btn_show_form);
@@ -294,7 +316,7 @@ public class ContentActivity extends AppCompatActivity
                     delete.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            callServiceVehicleDelete(vehicleList.get(position).getImei().toString());
+                            callServiceVehicleDelete(vehicleList.get(position).getImei());
                         }
                     });
                     edit.setOnClickListener(new View.OnClickListener() {
@@ -302,9 +324,9 @@ public class ContentActivity extends AppCompatActivity
                         public void onClick(View v) {
 
                             Intent intent  = new Intent(mContext,FormAddVehicleActivity.class);
-                            intent.putExtra("old_imei", vehicleList.get(position).getImei().toString());
-                            intent.putExtra("old_brand", vehicleList.get(position).getBrand().toString());
-                            intent.putExtra("old_color", vehicleList.get(position).getColor().toString());
+                            intent.putExtra("old_imei", vehicleList.get(position).getImei());
+                            intent.putExtra("old_brand", vehicleList.get(position).getBrand());
+                            intent.putExtra("old_color", vehicleList.get(position).getColor());
                             startActivityForResult(intent, 3);
 
                         }
@@ -452,14 +474,12 @@ public class ContentActivity extends AppCompatActivity
         }
         if(id_srv == 6){
             coordinateList.clear();
-            if((List<Coordinate>) object != null){
+            if( object != null){
                 // Coordinate display
                 coordinateList.addAll((List<Coordinate>) object);
-                Log.d("SIZE",coordinateList.size()+"");
                 double tmp_lat = Double.parseDouble(((List<Coordinate>) object).get(0).getLatitude());
                 double tmp_lon = Double.parseDouble(((List<Coordinate>) object).get(0).getLongitude());
                 putMarker(tmp_lat, tmp_lon);
-                content_address = getAddress(tmp_lat,tmp_lon);
                 drawer.closeDrawer(Gravity.LEFT);
                 drawer.openDrawer(Gravity.RIGHT);
 
@@ -505,7 +525,6 @@ public class ContentActivity extends AppCompatActivity
 
 
 
-
     public void viewDBApp(){
         // Retrieving all records
         Cursor c=db.rawQuery("SELECT * FROM owners", null);
@@ -530,6 +549,7 @@ public class ContentActivity extends AppCompatActivity
         showMessage("Owner Table", buffer.toString());
 
     }
+
 
     public Owner getOwnerFromDb(){
 
@@ -564,21 +584,20 @@ public class ContentActivity extends AppCompatActivity
         mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
         // Add a marker in Sydney and move the camera
 
+   //     mMap.setOnInfoWindowClickListener(this);
+        mMap.setInfoWindowAdapter(this);
+
     }
 
 
+
     @Override
-    public View getInfoWindow(Marker marker) {
+    public View getInfoContents(Marker marker) {
         LayoutInflater layoutInflater = LayoutInflater.from(mContext);
         View view = layoutInflater.inflate(R.layout.marker_window, null);
         tv_address = (TextView)view.findViewById(R.id.txt_address);
         tv_address.setText(content_address);
         return view;
-    }
-
-    @Override
-    public View getInfoContents(Marker marker) {
-        return null;
     }
 
     @Override
@@ -588,18 +607,16 @@ public class ContentActivity extends AppCompatActivity
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-        // mMap
     }
 
     public void putMarker(double tmp_lat, double tmp_lon ){
         coord_GPS =  new LatLng(tmp_lat,tmp_lon);
+        content_address = getAddress(tmp_lat, tmp_lon);
+        drawer.closeDrawer(Gravity.RIGHT);
         mMap.clear();
         mMap.addMarker(new MarkerOptions().position(coord_GPS)).showInfoWindow();
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(coord_GPS, 18));
-        drawer.closeDrawer(Gravity.RIGHT);
-        content_address = getAddress(tmp_lat,tmp_lon);
-        mMap.setInfoWindowAdapter(this);
-        mMap.setOnInfoWindowClickListener(this);
+
 
     }
 
@@ -624,6 +641,12 @@ public class ContentActivity extends AppCompatActivity
         }
         return sb.toString();
     }
+
+    @Override
+    public View getInfoWindow(Marker marker) {
+        return null;
+    }
+
 }
 
 

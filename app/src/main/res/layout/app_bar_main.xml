@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -15,12 +14,12 @@
 
     <include layout="@layout/content_main" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
+    <ImageView
+        android:id="@+id/btn_logout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:src="@drawable/ic_logout_64"
         android:layout_gravity="bottom|left"
-        android:layout_margin="@dimen/fab_margin"
-        android:background="#678FBA"
-        android:src="@drawable/ic_refresh_white_36dp" />
+        android:layout_margin="@dimen/fab_margin"/>
+
 </android.support.design.widget.CoordinatorLayout>
