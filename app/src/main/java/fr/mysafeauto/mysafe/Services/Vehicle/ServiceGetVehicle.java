@@ -25,6 +25,7 @@ public class ServiceGetVehicle {
     private Exception error;
     private ProgressDialog dialog;
     private String service; // option: create, delete, update, display
+    private int result;
 
     public ServiceGetVehicle(ServiceCallBack callBack, ProgressDialog progressDialog, String service) {
         this.service = service;
@@ -56,11 +57,11 @@ public class ServiceGetVehicle {
                             return findAllItems(params[0]);
                         case "create":
                             // Vehicle Create
-                            WebServiceUtil.requestWebServicePOST(params[0], params[1]);
+                            result = WebServiceUtil.requestWebServicePOST(params[0], params[1]);
                             return null;
                         case "delete":
                             //Vehicle Delete
-                            WebServiceUtil.requestWebServiceDELETE(params[0]);
+                            result = WebServiceUtil.requestWebServiceDELETE(params[0]);
                             return null;
                         case "update":
                             //Vehicle Edit
@@ -111,11 +112,17 @@ public class ServiceGetVehicle {
                             return;
                         case "create":
                             // Vehicle Create
-                            callBack.serviceSuccess("Success", 3);
+                            if(result != 201)
+                                callBack.serviceSuccess("Error", 3);
+                            else
+                                callBack.serviceSuccess("Success", 3);
                             return;
                         case "delete":
                             //Vehicle Delete
-                            callBack.serviceSuccess("Success", 4);
+                            if(result != 200)
+                                callBack.serviceSuccess("Error",4);
+                            else
+                                callBack.serviceSuccess("Success", 4);
                             return;
                         case "update":
                             callBack.serviceSuccess("Success", 5);

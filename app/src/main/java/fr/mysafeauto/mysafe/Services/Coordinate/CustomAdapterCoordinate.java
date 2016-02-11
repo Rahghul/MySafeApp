@@ -1,6 +1,7 @@
 package fr.mysafeauto.mysafe.Services.Coordinate;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,7 +56,9 @@ public class CustomAdapterCoordinate extends BaseAdapter {
             holder.textViewSpeed = (TextView) convertView.findViewById(R.id.txt_item_speed);
             holder.textViewBatt = (TextView) convertView.findViewById(R.id.txt_item_batt);
             holder.textViewDate = (TextView) convertView.findViewById(R.id.txt_item_date);
-
+           // if(position == 0)
+            //    convertView.setBackgroundColor(Color.parseColor("#678FBA"));
+            
             holder.imageViewBatt = (ImageView) convertView.findViewById(R.id.img_item_batt);
 
             convertView.setTag(holder);

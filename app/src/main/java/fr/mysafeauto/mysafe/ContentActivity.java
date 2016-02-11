@@ -1,12 +1,15 @@
 package fr.mysafeauto.mysafe;
 
 import android.app.AlertDialog;
+import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -15,7 +18,10 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -33,10 +39,13 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import fr.mysafeauto.mysafe.Forms.FormAddVehicleActivity;
 import fr.mysafeauto.mysafe.Services.Coordinate.Coordinate;
@@ -48,13 +57,12 @@ import fr.mysafeauto.mysafe.Services.Vehicle.CustomAdapterVehicle;
 import fr.mysafeauto.mysafe.Services.Vehicle.OnSwipeTouchListener;
 import fr.mysafeauto.mysafe.Services.Vehicle.ServiceGetVehicle;
 import fr.mysafeauto.mysafe.Services.Vehicle.Vehicle;
-import fr.mysafeauto.mysafe.Services.WebServiceUtil;
 
 /**
  * Created by Rahghul on 10/02/2016.
  */
 public class ContentActivity extends AppCompatActivity
-        implements OnMapReadyCallback, ServiceCallBack {
+        implements OnMapReadyCallback, ServiceCallBack, GoogleMap.InfoWindowAdapter, GoogleMap.OnInfoWindowClickListener {
 
     private GoogleMap mMap;
     Toolbar toolbar;
@@ -79,7 +87,8 @@ public class ContentActivity extends AppCompatActivity
     String postParam;
 
     int position = 0;
-    int savedItemPos = 0;
+    int savedItemPosVehicle = 0;
+    //int savedItemPosCoord = 0;
 
     // Left drawer elements
     List<Coordinate> coordinateList = new ArrayList<Coordinate>();
@@ -98,10 +107,22 @@ public class ContentActivity extends AppCompatActivity
     TextView tv_vehicle_brand;
     TextView tv_vehicle_color;
 
+    LatLng coord_GPS;
+    View markerInfoWindowChild;
+    String content_address;
+    TextView tv_address;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mContext = this;
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+
 
         db = openOrCreateDatabase("MysafeAppDB", Context.MODE_PRIVATE, null);
 
@@ -127,36 +148,62 @@ public class ContentActivity extends AppCompatActivity
 
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
-        vehicleListView = (ListView)findViewById(R.id.rightListView);
+        dialog = new ProgressDialog(this);
+
+
+        vehicleListView = (ListView)findViewById(R.id.vehicleListView);
+        vehicleAdapter = new CustomAdapterVehicle(this, vehicleList);
+        vehicleListView.setAdapter(vehicleAdapter);
         vehicleListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Object o = vehicleListView.getItemAtPosition(position);
                 callServiceCoordinateDisplay(((Vehicle) o).getImei());
-                drawer.closeDrawer(Gravity.LEFT);
-                drawer.openDrawer(Gravity.RIGHT);
+
 
                 //Mettre à jour le header coordonnee
-                tv_vehicle_brand.setText(((Vehicle)o).getBrand());
-                tv_vehicle_color.setText(((Vehicle)o).getColor());
+                tv_vehicle_brand.setText(((Vehicle) o).getBrand());
+                tv_vehicle_color.setText(((Vehicle) o).getColor());
 
                 parent.getChildAt(position).setBackgroundColor(Color.parseColor("#678FBA"));
-                if (savedItemPos != position) {
-                    parent.getChildAt(savedItemPos).setBackgroundColor(Color.TRANSPARENT);
+                if (savedItemPosVehicle != position) {
+                    parent.getChildAt(savedItemPosVehicle).setBackgroundColor(Color.TRANSPARENT);
                 }
 
-                savedItemPos = position;
+                savedItemPosVehicle = position;
             }
         });
-        coordinateListView = (ListView)findViewById(R.id.leftListView);
-
-        vehicleAdapter = new CustomAdapterVehicle(this, vehicleList);
-        vehicleListView.setAdapter(vehicleAdapter);
-
+        coordinateListView = (ListView)findViewById(R.id.coordListView);
         coordinateAdapter = new CustomAdapterCoordinate(this, coordinateList);
         coordinateListView.setAdapter(coordinateAdapter);
+        //MAJ des services
+        callServiceVehicleDisplay();
 
-        dialog = new ProgressDialog(this);
+
+        coordinateListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                Object o = coordinateListView.getItemAtPosition(position);
+
+                double tmp_lat = Double.parseDouble(((Coordinate) o).getLatitude());
+                double tmp_lon = Double.parseDouble(((Coordinate) o).getLongitude());
+                putMarker(tmp_lat, tmp_lon);
+
+                View child = coordinateListView.getChildAt(position - coordinateListView.getFirstVisiblePosition());
+                markerInfoWindowChild = child;
+                //   child.setBackgroundColor(Color.parseColor("#678FBA"));
+                // if (savedItemPosCoord != position) {
+                //   parent.getChildAt(savedItemPosCoord).setBackgroundColor(Color.TRANSPARENT);
+                // }
+
+                //savedItemPosCoord = position;
+            }
+        });
+
+
+
+
 
         toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close){
             @Override
@@ -184,8 +231,7 @@ public class ContentActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        //MAJ des services
-        callServiceVehicleDisplay();
+
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -196,11 +242,10 @@ public class ContentActivity extends AppCompatActivity
             }
         });
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
 
-        mContext = this;
+
+
+
         btn_add_vehicle = (ImageView)findViewById(R.id.btn_show_form);
         btn_add_vehicle.setOnClickListener(new View.OnClickListener() {
 
@@ -226,11 +271,11 @@ public class ContentActivity extends AppCompatActivity
         });
     }
 
-    @Override
+    /*@Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
 
         return super.dispatchTouchEvent(ev);
-    }
+    }*/
 
     private boolean showDeleteEditButton(int pos) {
         hideDeleteEditButton(position);
@@ -311,7 +356,7 @@ public class ContentActivity extends AppCompatActivity
         }
         if(requestCode == 3 && resultCode == RESULT_OK){
             if(data.hasExtra("imei") && data.hasExtra("brand") && data.hasExtra("color")){
-                callServiceVehicleUpdate(data.getExtras().getString("imei"),data.getExtras().getString("brand"),data.getExtras().getString("color"));
+                callServiceVehicleUpdate(data.getExtras().getString("imei"), data.getExtras().getString("brand"), data.getExtras().getString("color"));
             }
         }
 
@@ -353,24 +398,6 @@ public class ContentActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-    }
 
 
 
@@ -407,9 +434,17 @@ public class ContentActivity extends AppCompatActivity
         }
         if(id_srv == 3){
             //showMessage("Result", "Vehicle added.");
+            String result = (String)object;
+            if(result.equals("Error")){
+                showMessage("Alert creation vehicle","This imei is unavailable.");
+            }
         }
         if(id_srv == 4){
             //showMessage("Result","Vehicle deleted.");
+            String result = (String)object;
+            if(result.equals("Error")){
+                showMessage("Alert deletion vehicle","This vehicle is already deleted.");
+            }
         }
 
         if(id_srv == 5){
@@ -420,6 +455,14 @@ public class ContentActivity extends AppCompatActivity
             if((List<Coordinate>) object != null){
                 // Coordinate display
                 coordinateList.addAll((List<Coordinate>) object);
+                Log.d("SIZE",coordinateList.size()+"");
+                double tmp_lat = Double.parseDouble(((List<Coordinate>) object).get(0).getLatitude());
+                double tmp_lon = Double.parseDouble(((List<Coordinate>) object).get(0).getLongitude());
+                putMarker(tmp_lat, tmp_lon);
+                content_address = getAddress(tmp_lat,tmp_lon);
+                drawer.closeDrawer(Gravity.LEFT);
+                drawer.openDrawer(Gravity.RIGHT);
+
             }
             coordinateAdapter.notifyDataSetChanged();
         }
@@ -459,6 +502,7 @@ public class ContentActivity extends AppCompatActivity
         serviceGetCoordinate = new ServiceGetCoordinate(this, dialog);
         serviceGetCoordinate.refreshLocalisation(urlCooridnateDisplay + imei);
     }
+
 
 
 
@@ -503,6 +547,82 @@ public class ContentActivity extends AppCompatActivity
             return new Owner(c.getInt(0), c.getString(1), c.getString(2), c.getString(4), c.getString(3));
         }
         return  null;
+    }
+
+    /**
+     * Manipulates the map once available.
+     * This callback is triggered when the map is ready to be used.
+     * This is where we can add markers or lines, add listeners or move the camera. In this case,
+     * we just add a marker near Sydney, Australia.
+     * If Google Play services is not installed on the device, the user will be prompted to install
+     * it inside the SupportMapFragment. This method will only be triggered once the user has
+     * installed Google Play services and returned to the app.
+     */
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+        // Add a marker in Sydney and move the camera
+
+    }
+
+
+    @Override
+    public View getInfoWindow(Marker marker) {
+        LayoutInflater layoutInflater = LayoutInflater.from(mContext);
+        View view = layoutInflater.inflate(R.layout.marker_window, null);
+        tv_address = (TextView)view.findViewById(R.id.txt_address);
+        tv_address.setText(content_address);
+        return view;
+    }
+
+    @Override
+    public View getInfoContents(Marker marker) {
+        return null;
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        return super.dispatchKeyEvent(event);
+    }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        // mMap
+    }
+
+    public void putMarker(double tmp_lat, double tmp_lon ){
+        coord_GPS =  new LatLng(tmp_lat,tmp_lon);
+        mMap.clear();
+        mMap.addMarker(new MarkerOptions().position(coord_GPS)).showInfoWindow();
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(coord_GPS, 18));
+        drawer.closeDrawer(Gravity.RIGHT);
+        content_address = getAddress(tmp_lat,tmp_lon);
+        mMap.setInfoWindowAdapter(this);
+        mMap.setOnInfoWindowClickListener(this);
+
+    }
+
+    public String getAddress(double lat,double lon){
+        Geocoder geocoder;
+        List<Address> addresses;
+        geocoder = new Geocoder(this, Locale.getDefault());
+        StringBuilder sb = new StringBuilder();
+        try {
+            addresses = geocoder.getFromLocation(lat, lon, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+            String address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+            String city = addresses.get(0).getLocality();
+            String state = addresses.get(0).getAdminArea();
+            String country = addresses.get(0).getCountryName();
+            String postalCode = addresses.get(0).getPostalCode();
+            String knownName = addresses.get(0).getFeatureName();
+
+            sb.append(address).append("\n").append(postalCode).append(" ").append(city).append("\n").append(country);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return sb.toString();
     }
 }
 

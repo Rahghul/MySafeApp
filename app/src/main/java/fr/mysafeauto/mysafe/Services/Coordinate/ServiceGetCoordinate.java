@@ -2,6 +2,7 @@ package fr.mysafeauto.mysafe.Services.Coordinate;
 
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -90,5 +91,6 @@ public class ServiceGetCoordinate {
                             new Date(Long.parseLong(p.getString("dateTime")))));
         }
         return foundCoordinates;
+
     }
 }

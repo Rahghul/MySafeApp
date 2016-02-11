@@ -17,7 +17,7 @@
     </LinearLayout>
 
     <ListView
-        android:id="@+id/leftListView"
+        android:id="@+id/coordListView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:divider="#678FBA"
