@@ -304,7 +304,7 @@ public class ContentActivity extends AppCompatActivity
                     public void run() {
                         swipeCoordList.setRefreshing(false);
                         if (vehicleList != null)
-                            callServiceCoordinateDisplay(vehicleList.get(0).getImei());
+                            callServiceCoordinateDisplay(vehicleList.get(savedItemPosVehicle).getImei());
                     }
                 }, 2000);
             }
