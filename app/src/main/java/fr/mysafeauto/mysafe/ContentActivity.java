@@ -12,10 +12,12 @@ import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -291,6 +293,24 @@ public class ContentActivity extends AppCompatActivity
 
             }
         });
+
+        final SwipeRefreshLayout swipeCoordList = (SwipeRefreshLayout)findViewById(R.id.swipe_coordList);
+        swipeCoordList.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                swipeCoordList.setRefreshing(true);
+                (new Handler()).postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        swipeCoordList.setRefreshing(false);
+                        if (vehicleList != null)
+                            callServiceCoordinateDisplay(vehicleList.get(0).getImei());
+                    }
+                }, 2000);
+            }
+        });
+
+
     }
 
     /*@Override
@@ -581,7 +601,7 @@ public class ContentActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         // Add a marker in Sydney and move the camera
 
    //     mMap.setOnInfoWindowClickListener(this);

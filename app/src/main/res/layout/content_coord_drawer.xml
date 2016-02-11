@@ -15,13 +15,20 @@
             android:layout_gravity="left"
             android:choiceMode="singleChoice"/>
     </LinearLayout>
-
-    <ListView
-        android:id="@+id/coordListView"
+    <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:divider="#678FBA"
-        android:dividerHeight="2dp"
-        android:choiceMode="singleChoice" />
+        android:orientation="vertical"
+        android:id="@+id/swipe_coordList"
+        tools:context="fr.mysafeauto.mysafe.ContentActivity">
+        <ListView
+            android:id="@+id/coordListView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="#678FBA"
+            android:dividerHeight="2dp"
+            android:choiceMode="singleChoice" />
+    </android.support.v4.widget.SwipeRefreshLayout>
 
 </LinearLayout>
