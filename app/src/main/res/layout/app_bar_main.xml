@@ -11,15 +11,30 @@
 
 
 
-
     <include layout="@layout/content_main" />
 
     <ImageView
+        android:id="@+id/btn_nav_drawer_left"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/ic_nav_drawer"
+        android:layout_margin="@dimen/fab_margin"
+        android:layout_gravity="top|left"/>
+
+    <ImageView
+        android:id="@+id/btn_nav_drawer_right"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/ic_nav_drawer"
+        android:layout_margin="@dimen/fab_margin"
+        android:layout_gravity="top|right"/>
+
+    <ImageView
         android:id="@+id/btn_logout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_logout_64"
-        android:layout_gravity="bottom|left"
-        android:layout_margin="@dimen/fab_margin"/>
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:src="@drawable/ic_logout_silver"
+        android:layout_gravity="bottom|right"
+        android:layout_margin="10dp"/>
 
 </android.support.design.widget.CoordinatorLayout>

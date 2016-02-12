@@ -119,6 +119,8 @@ public class ContentActivity extends AppCompatActivity
 
     //Float Image logout
     ImageView btn_logout;
+    ImageView btn_nav_drawer_left;
+    ImageView btn_nav_drawer_right;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -203,6 +205,7 @@ public class ContentActivity extends AppCompatActivity
                 double tmp_lat = Double.parseDouble(((Coordinate) o).getLatitude());
                 double tmp_lon = Double.parseDouble(((Coordinate) o).getLongitude());
                 putMarker(tmp_lat, tmp_lon);
+                //coordinateListView.getChildAt(1).setBackgroundColor(Color.parseColor("#678FBA"));
 
                 // if (savedItemPosCoord != position) {
                 //   parent.getChildAt(savedItemPosCoord).setBackgroundColor(Color.TRANSPARENT);
@@ -211,7 +214,6 @@ public class ContentActivity extends AppCompatActivity
                 //savedItemPosCoord = position;
             }
         });
-
 
 
 
@@ -266,6 +268,23 @@ public class ContentActivity extends AppCompatActivity
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .show();
 
+            }
+        });
+
+        //button open drawer left
+        btn_nav_drawer_left =(ImageView)findViewById(R.id.btn_nav_drawer_left);
+        btn_nav_drawer_left.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawer.openDrawer(Gravity.LEFT);
+            }
+        });
+        //Button open drawer right
+        btn_nav_drawer_right =(ImageView)findViewById(R.id.btn_nav_drawer_right);
+        btn_nav_drawer_right.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawer.openDrawer(Gravity.RIGHT);
             }
         });
 

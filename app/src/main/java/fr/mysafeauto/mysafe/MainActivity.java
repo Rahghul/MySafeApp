@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity
         // Checking if no records found
         if(c.getCount()==0)
         {
-            showMessage("Error", "No records found but table exist");
+            //showMessage("Error", "No records found but table exist");
             return;
         }
         // Appending records to a string buffer
@@ -227,7 +227,7 @@ public class MainActivity extends AppCompatActivity
         // Checking if no records found
         if(c.getCount()==0)
         {
-            showMessage("Error", "No records found but table exist");
+            //showMessage("Error", "No records found but table exist");
             return null;
         }
         // Appending records to a string buffer
