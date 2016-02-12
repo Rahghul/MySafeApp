@@ -40,7 +40,8 @@
         <activity
             android:name=".Forms.FormAddVehicleActivity"
             android:label="@string/title_activity_add"
-            android:parentActivityName=".ContentActivity" >
+            android:parentActivityName=".ContentActivity"
+            android:theme="@style/AppTheme">
         </activity>
 
         <activity
