@@ -1,8 +1,10 @@
 package fr.mysafeauto.mysafe.Services.Owner;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GoogleAuthUtil;
@@ -14,6 +16,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 
 import fr.mysafeauto.mysafe.MainActivity;
+import fr.mysafeauto.mysafe.R;
 import fr.mysafeauto.mysafe.Services.ServiceCallBack;
 import fr.mysafeauto.mysafe.Services.WebServiceUtil;
 
@@ -98,11 +101,18 @@ public class ServiceCreateOwner{
         @Override
         protected void onPostExecute (Boolean accessLogin){
 
-            if (owner == null || error != null) {
+            if(owner == null){
+                dialog.hide();
+                Toast.makeText(mActivity, R.string.loginInfo , Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            if (error != null) {
                 callBack.serviceFailure(error);
             } else {
                 callBack.serviceSuccess(accessLogin, 1);
             }
+
         }
         }.execute();
     }
@@ -124,7 +134,8 @@ public class ServiceCreateOwner{
             // Some other type of unrecoverable exception has occurred.
             // Report and log the error as appropriate for your app.
             //...
-            callBack.serviceFailure(fatalException);
+            Log.d("ERROR",fatalException.toString());
+            //callBack.serviceFailure(fatalException);
         }
         return null;
     }
@@ -137,5 +148,12 @@ public class ServiceCreateOwner{
         return new Owner(data.getString("given_name"), data.getString("family_name"), mEmail);
     }
 
+    public void showMessage(String title, String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
+        builder.setCancelable(true);
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.show();
+    }
 
 }

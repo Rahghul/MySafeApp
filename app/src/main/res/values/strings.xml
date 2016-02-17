@@ -24,6 +24,7 @@
     <string name="title_activity_add">Add Vehicle</string>
     <string name="error_field_required">This field is required</string>
     <string name="error_invalid_imei">This IMEI number is invalid</string>
+    <string name="loginInfo">Hi, I need your Google Info permisison to create you as a owner.</string>
 
 
 </resources>
