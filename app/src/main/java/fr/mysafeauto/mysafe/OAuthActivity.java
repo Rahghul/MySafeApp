@@ -26,7 +26,7 @@ import fr.mysafeauto.mysafe.Services.Owner.ServiceGetOwner;
 import fr.mysafeauto.mysafe.Services.ServiceCallBack;
 
 
-public class MainActivity extends AppCompatActivity
+public class OAuthActivity extends AppCompatActivity
         implements ServiceCallBack {
 
     Button buttonLogin;
@@ -128,9 +128,8 @@ public class MainActivity extends AppCompatActivity
         if (id_srv == 0) {
             owner = (Owner)object;
             if(owner == null){
-                serviceCreateOwner = new ServiceCreateOwner(MainActivity.this, mEmail, SCOPE, this, dialog);
+                serviceCreateOwner = new ServiceCreateOwner(OAuthActivity.this, mEmail, SCOPE, this, dialog);
                 serviceCreateOwner.createOwner();
-                //new ServiceCreateOwner(MainActivity.this, mEmail, SCOPE, this).execute();
             }
             else{
                 db.execSQL("DROP TABLE IF EXISTS owners");
@@ -139,8 +138,8 @@ public class MainActivity extends AppCompatActivity
                 db.execSQL("INSERT INTO owners VALUES('" + owner.getId()+ "','" + owner.getFirst_name() + "','" + owner.getLast_name() +
                         "','" + owner.getEmail() + "','" + owner.getPasswd() + "');");
 
-                Intent myIntent = new Intent(MainActivity.this, ContentActivity.class);
-                MainActivity.this.startActivity(myIntent);
+                Intent myIntent = new Intent(OAuthActivity.this, UserActivity.class);
+                OAuthActivity.this.startActivity(myIntent);
             }
         }
         if (id_srv == 1) {
@@ -179,7 +178,7 @@ public class MainActivity extends AppCompatActivity
                     int statusCode = ((GooglePlayServicesAvailabilityException) e)
                             .getConnectionStatusCode();
                     Dialog dialog = GooglePlayServicesUtil.getErrorDialog(statusCode,
-                            MainActivity.this,
+                            OAuthActivity.this,
                             REQUEST_CODE_RECOVER_FROM_PLAY_SERVICES_ERROR);
                     dialog.show();
                 } else if (e instanceof UserRecoverableAuthException) {

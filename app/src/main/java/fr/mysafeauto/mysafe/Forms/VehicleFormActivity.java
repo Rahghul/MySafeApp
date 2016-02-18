@@ -23,7 +23,7 @@ import fr.mysafeauto.mysafe.Services.Vehicle.Vehicle;
 /**
  * Created by Rahghul on 05/02/2016.
  */
-public class FormAddVehicleActivity extends AppCompatActivity {
+public class VehicleFormActivity extends AppCompatActivity {
 
     Button BtnAddVehcile;
     AutoCompleteTextView EdTxt_IMEI;

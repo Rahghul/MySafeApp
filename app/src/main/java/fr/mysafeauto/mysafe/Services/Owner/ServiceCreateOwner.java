@@ -15,7 +15,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-import fr.mysafeauto.mysafe.MainActivity;
+import fr.mysafeauto.mysafe.OAuthActivity;
 import fr.mysafeauto.mysafe.R;
 import fr.mysafeauto.mysafe.Services.ServiceCallBack;
 import fr.mysafeauto.mysafe.Services.WebServiceUtil;
@@ -25,7 +25,7 @@ import fr.mysafeauto.mysafe.Services.WebServiceUtil;
  */
 
 public class ServiceCreateOwner{
-    MainActivity mActivity;
+    OAuthActivity mActivity;
     String mScope;
     String mEmail;
     ServiceCallBack callBack;
@@ -34,7 +34,7 @@ public class ServiceCreateOwner{
     int statusCode;
     ProgressDialog dialog;
 
-    public ServiceCreateOwner(MainActivity activity, String name, String scope, ServiceCallBack callBack, ProgressDialog dialog) {
+    public ServiceCreateOwner(OAuthActivity activity, String name, String scope, ServiceCallBack callBack, ProgressDialog dialog) {
         this.mActivity = activity;
         this.mScope = scope;
         this.mEmail = name;

@@ -1,7 +1,6 @@
 package fr.mysafeauto.mysafe;
 
 import android.app.AlertDialog;
-import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,26 +12,21 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
-import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -52,7 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import fr.mysafeauto.mysafe.Forms.FormAddVehicleActivity;
+import fr.mysafeauto.mysafe.Forms.VehicleFormActivity;
 import fr.mysafeauto.mysafe.Services.Coordinate.Coordinate;
 import fr.mysafeauto.mysafe.Services.Coordinate.CustomAdapterCoordinate;
 import fr.mysafeauto.mysafe.Services.Coordinate.ServiceGetCoordinate;
@@ -64,7 +58,7 @@ import fr.mysafeauto.mysafe.Services.Vehicle.ServiceGetVehicle;
 import fr.mysafeauto.mysafe.Services.Vehicle.Vehicle;
 
 
-public class ContentActivity extends AppCompatActivity
+public class UserActivity extends AppCompatActivity
         implements OnMapReadyCallback, ServiceCallBack, GoogleMap.InfoWindowAdapter, GoogleMap.OnInfoWindowClickListener {
 
     private GoogleMap mMap;
@@ -294,7 +288,7 @@ public class ContentActivity extends AppCompatActivity
 
             @Override
             public void onClick(View vw) {
-                startActivityForResult(new Intent(ContentActivity.this, FormAddVehicleActivity.class), 2);// Activity is started with requestCode 2
+                startActivityForResult(new Intent(UserActivity.this, VehicleFormActivity.class), 2);// Activity is started with requestCode 2
 
             }
         });
@@ -362,7 +356,7 @@ public class ContentActivity extends AppCompatActivity
                         @Override
                         public void onClick(View v) {
 
-                            Intent intent  = new Intent(mContext,FormAddVehicleActivity.class);
+                            Intent intent  = new Intent(mContext,VehicleFormActivity.class);
                             intent.putExtra("old_imei", vehicleList.get(position).getImei());
                             intent.putExtra("old_brand", vehicleList.get(position).getBrand());
                             intent.putExtra("old_color", vehicleList.get(position).getColor());
@@ -621,11 +615,9 @@ public class ContentActivity extends AppCompatActivity
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
-        // Add a marker in Sydney and move the camera
 
-   //     mMap.setOnInfoWindowClickListener(this);
+        //affiche bulle en cliquant sur pointeur
         mMap.setInfoWindowAdapter(this);
-
     }
 
 

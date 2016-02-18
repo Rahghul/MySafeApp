@@ -25,7 +25,7 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".OAuthActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -38,16 +38,16 @@
 
 
         <activity
-            android:name=".Forms.FormAddVehicleActivity"
+            android:name=".Forms.VehicleFormActivity"
             android:label="@string/title_activity_add"
-            android:parentActivityName=".ContentActivity"
+            android:parentActivityName=".UserActivity"
             android:theme="@style/AppTheme">
         </activity>
 
         <activity
-            android:name=".ContentActivity"
+            android:name=".UserActivity"
             android:label="MySafe Content"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName=".OAuthActivity"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
 

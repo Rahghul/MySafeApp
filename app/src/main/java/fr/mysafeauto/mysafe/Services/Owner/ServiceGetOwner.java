@@ -1,24 +1,12 @@
 package fr.mysafeauto.mysafe.Services.Owner;
 
 import android.app.ProgressDialog;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
-import android.util.Log;
-
-import com.google.android.gms.auth.GoogleAuthException;
-import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.auth.UserRecoverableAuthException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.List;
-
-import fr.mysafeauto.mysafe.MainActivity;
 import fr.mysafeauto.mysafe.Services.ServiceCallBack;
-import fr.mysafeauto.mysafe.Services.Vehicle.Vehicle;
 import fr.mysafeauto.mysafe.Services.WebServiceUtil;
 
 /**
